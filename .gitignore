@@ -1,0 +1,14 @@
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+.DS_Store
+.vscode
+__pycache__
+**/*.egg-info
+
+references/
+
+build/
+
+notes.md

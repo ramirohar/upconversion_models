@@ -1,0 +1,16 @@
+[workspace]
+authors = ["Ramiro Harguiunteguy <ramirohar@gmail.com>"]
+channels = ["conda-forge"]
+name = "upconversion_models"
+platforms = ["osx-arm64", "linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = "3.13.*"
+matplotlib = ">=3.11.0,<4"
+ipykernel = ">=7.3.0,<8"
+
+[pypi-dependencies]
+upconversion_models = {path = ".", editable = true}
