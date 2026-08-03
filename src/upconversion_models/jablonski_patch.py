@@ -6,7 +6,7 @@ import numpy.typing as npt
 import pint
 import scipy.constants as constants
 import xarray as xr
-from poincare import Simulator, SteadyState, solvers
+from poincare import Parameter, Simulator, SteadyState, solvers
 from poincare.simulator import Components, Initial
 from symbolite import Real
 
@@ -113,3 +113,11 @@ def piecewise(
 
     ds = xr.concat(dss, dim="time")
     return ds
+
+class InspectableSpectroscopySystem(SpectroscopicSystem):
+    def to_dict(self) -> dict[str, pint.Quantity | float | int]:
+        cfg_dict = {}
+        for val in self._yield(Parameter):
+            if isinstance(val.default, pint.Quantity | float | int):
+                cfg_dict[val.name] = val.default
+        return cfg_dict

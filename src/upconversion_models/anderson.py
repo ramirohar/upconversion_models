@@ -13,6 +13,7 @@ from jablonski.transitions import (
 )
 from pint import get_application_registry
 
+from .jablonski_patch import InspectableSpectroscopySystem
 from .constants import h, c
 u = get_application_registry()
 
@@ -37,7 +38,7 @@ class EnergyTransferUpconversion(SpectroscopicSystem):
     )
 
 
-class System(SpectroscopicSystem):
+class System(InspectableSpectroscopySystem):
     ## Parameter values taken from 2003-Anderson's model
 
     yb_cross_section: Parameter = assign(default=1e-20 * u.cm**2)  # no value reported
