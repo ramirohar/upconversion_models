@@ -126,7 +126,7 @@ class System(InspectableSpectroscopySystem):
     )
 
     Er6: SingletState = initial(
-        energy=18200 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=18300 * energy_factor, spin_multiplicity="singlet", default=0
     )
 
     Er7: SingletState = initial(
