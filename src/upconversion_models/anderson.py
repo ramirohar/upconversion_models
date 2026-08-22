@@ -14,7 +14,7 @@ from jablonski.transitions import (
 from pint import get_application_registry
 
 from .jablonski_patch import InspectableSpectroscopySystem
-from .constants import h, c
+from .utils import h, c
 u = get_application_registry()
 
 wl = 9.8e-7 * u.m  # IR Wavelength
