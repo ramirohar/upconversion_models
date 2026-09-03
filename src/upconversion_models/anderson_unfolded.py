@@ -62,8 +62,7 @@ class AndersonModelUnfolded(SpectroscopicSystem):
     k_25: Parameter = assign(default=0 / u.s * u.cm**3)
     k_37: Parameter = assign(default=1.54e-15 / u.s * u.cm**3)
     k_58: Parameter = assign(default=1.76e-15 / u.s * u.cm**3)
-    k_6s9: Parameter = assign(default=6.07e-15 / u.s * u.cm**3)
-    k_6h9: Parameter = assign(default=6.07e-15 / u.s * u.cm**3)
+    k_69: Parameter = assign(default=6.07e-15 / u.s * u.cm**3)
 
     # Er -> Yb etu rates
     k_31: Parameter = assign(default=2e-16 / u.s * u.cm**3)
@@ -75,31 +74,46 @@ class AndersonModelUnfolded(SpectroscopicSystem):
     k_nr9: Parameter = assign(default=1.76e6 / u.s)
     k_nr8: Parameter = assign(default=43_450 / u.s)
     k_nr7: Parameter = assign(default=1e6 / u.s)
-    k_nr6h: Parameter = assign(default=26 / u.s)
-    k_nr6s: Parameter = assign(default=26 / u.s)
+    k_nr6: Parameter = assign(default=26 / u.s)
     k_nr5: Parameter = assign(default=0 / u.s)
     k_nr4: Parameter = assign(default=22_120 / u.s)
     k_nr3: Parameter = assign(default=61 / u.s)
 
     # Radiative rates
     k_r8: Parameter = assign(default=2_330 / u.s)
-    k_r6h: Parameter = assign(default=1_510 / u.s)
-    k_r6s: Parameter = assign(default=1_510 / u.s)
+    k_r6: Parameter = assign(default=1_510 / u.s)
     k_r5: Parameter = assign(default=2_039 / u.s)
     k_r3: Parameter = assign(default=73 / u.s)
     k_r2: Parameter = assign(default=110 / u.s)
 
     # Cross relaxation
-    k_cr6h: Parameter = assign(default=2.79e-17 / u.s * u.cm**3)
-    k_cr6s: Parameter = assign(default=2.79e-17 / u.s * u.cm**3)
+    k_cr6: Parameter = assign(default=2.79e-17 / u.s * u.cm**3)
     k_cr4: Parameter = assign(default=8.04e-19 / u.s * u.cm**3)
 
     # Additional parameters
     k_uc2: Parameter = assign(default=2.31e-17 / u.s * u.cm**3)
 
+    # Level 6 poblation parameters
+    fs: Parameter = assign(default=0.5)  # To be complete
+    fh: Parameter = assign(default=1 - fs)
+
+    # Level 6 partition
+    a_r: Parameter = assign(default=1)
+    b_r = (1 - fs * a_r) / (1 - fs)
+
+    a_nr: Parameter = assign(default=1)
+    b_nr = (1 - fs * a_nr) / (1 - fs)
+
+    a_et9: Parameter = assign(default=1)
+    b_et9 = (1 - fs * a_et9) / (1 - fs)
+
+    a_cr: Parameter = assign(default=1)
+    b_cr = (1 - fs * a_cr) / (1 - fs)
+
     # Manifold rates
-    k_manifold_up: Parameter = assign(default=0 / u.s)
-    k_manifold_down: Parameter = assign(default=0 / u.s)
+    k_therm: Parameter = assign(default=1e13 / u.s)
+    k_manifold_up: Parameter = assign(default=fh * k_therm)
+    k_manifold_down: Parameter = assign(default=fs * k_therm)
 
     # Parameters introduced (not reported in Anderson's)
     site_density: Parameter = assign(default=1.38e22 / u.cm**3)
@@ -117,7 +131,7 @@ class AndersonModelUnfolded(SpectroscopicSystem):
     Yb1: SingletState = initial(
         energy=0 * energy_factor,
         spin_multiplicity="singlet",
-        default=yb_concetration * (1 - isolated_percentage),
+        default=yb_concetration * (1 - isolated_percentage),  # type: ignore
     )
 
     Yb2: SingletState = initial(
@@ -127,7 +141,7 @@ class AndersonModelUnfolded(SpectroscopicSystem):
     Er1: SingletState = initial(
         energy=0 * energy_factor,
         spin_multiplicity="singlet",
-        default=er_concetration * (1 - isolated_percentage),
+        default=er_concetration * (1 - isolated_percentage),  # type: ignore
     )
 
     Er2: SingletState = initial(
@@ -215,7 +229,7 @@ class AndersonModelUnfolded(SpectroscopicSystem):
         sensitizer_low=Yb1,
         activator_low=Er6s,
         activator_high=Er9,
-        rate=k_6s9 * site_density,
+        rate=k_69 * a_et9 * site_density,
     )
 
     etu6h9 = EnergyTransferUpconversion(
@@ -223,7 +237,7 @@ class AndersonModelUnfolded(SpectroscopicSystem):
         sensitizer_low=Yb1,
         activator_low=Er6h,
         activator_high=Er9,
-        rate=k_6h9 * site_density,
+        rate=k_69 * b_et9 * site_density,
     )
 
     # Er -> Yb transitions
@@ -270,16 +284,11 @@ class AndersonModelUnfolded(SpectroscopicSystem):
 
     norad9 = InternalConversion(high=Er9, low=Er8, rate=k_nr9)
     norad8 = InternalConversion(high=Er8, low=Er7, rate=k_nr8)
-    norad7 = InternalConversion(high=Er7, low=Er6h, rate=k_nr7)
-    norad6h = InternalConversion(
-        high=Er6h, low=Er5, rate=k_nr6h
-    )  # This internal conversion might the equivalence with the unified levels
-    norad6s = InternalConversion(
-        high=Er6s, low=Er5, rate=k_nr6s
-    )  # but might be incorrect fisically since it's decaying to another level
-    norad5 = InternalConversion(
-        high=Er5, low=Er4, rate=k_nr5
-    )  # the one immediately below
+    norad7h = InternalConversion(high=Er7, low=Er6h, rate=k_nr7)
+    # norad7s = InternalConversion(high=Er7, low=Er6s, rate=a_nr*k_nr7)
+    norad6h = InternalConversion(high=Er6h, low=Er5, rate=b_nr * k_nr6)
+    norad6s = InternalConversion(high=Er6s, low=Er5, rate=a_nr * k_nr6)
+    norad5 = InternalConversion(high=Er5, low=Er4, rate=k_nr5)
     norad4 = InternalConversion(high=Er4, low=Er3, rate=k_nr4)
     norad3 = InternalConversion(high=Er3, low=Er2, rate=k_nr3)
 
@@ -290,13 +299,19 @@ class AndersonModelUnfolded(SpectroscopicSystem):
     rad83 = Fluorescence(excited=Er8, ground=Er3, rate=0.14 * k_r8)  # Blue
     rad85 = Fluorescence(excited=Er8, ground=Er5, rate=0.04 * k_r8)  # Blue
 
-    rad6h1 = Fluorescence(excited=Er6h, ground=Er1, rate=0.70 * k_r6h)  # Green
-    rad6h2 = Fluorescence(excited=Er6h, ground=Er2, rate=0.25 * k_r6h)  # Green
-    rad6h3 = Fluorescence(excited=Er6h, ground=Er3, rate=0.05 * k_r6h)  # Green
+    rad6h1 = Fluorescence(excited=Er6h, ground=Er1, rate=0.70 * b_r * k_r6)  # Green
+    rad6h2 = Fluorescence(excited=Er6h, ground=Er2, rate=0.25 * b_r * k_r6)  # Green
+    rad6h3 = Fluorescence(excited=Er6h, ground=Er3, rate=0.05 * b_r * k_r6)  # Green
 
-    rad6s1 = Fluorescence(excited=Er6s, ground=Er1, rate=0.70 * k_r6s)  # Yellow-Green
-    rad6s2 = Fluorescence(excited=Er6s, ground=Er2, rate=0.25 * k_r6s)  # Yellow-Green
-    rad6s3 = Fluorescence(excited=Er6s, ground=Er3, rate=0.05 * k_r6s)  # Yellow-Green
+    rad6s1 = Fluorescence(
+        excited=Er6s, ground=Er1, rate=0.70 * a_r * k_r6
+    )  # Yellow-Green
+    rad6s2 = Fluorescence(
+        excited=Er6s, ground=Er2, rate=0.25 * a_r * k_r6
+    )  # Yellow-Green
+    rad6s3 = Fluorescence(
+        excited=Er6s, ground=Er3, rate=0.05 * a_r * k_r6
+    )  # Yellow-Green
 
     rad51 = Fluorescence(excited=Er5, ground=Er1, rate=0.90 * k_r5)  # Red
     rad52 = Fluorescence(excited=Er5, ground=Er2, rate=0.05 * k_r5)  # Red
@@ -309,19 +324,19 @@ class AndersonModelUnfolded(SpectroscopicSystem):
 
     # Er-Er Cross-Relaxation
 
-    cross6s = EnergyTransferUpconversion(
-        sensitizer_high=Er6s,
-        sensitizer_low=Er3,
-        activator_low=Er1,
-        activator_high=Er2,
-        rate=k_cr6s * site_density,
-    )
     cross6h = EnergyTransferUpconversion(
         sensitizer_high=Er6h,
         sensitizer_low=Er3,
         activator_low=Er1,
         activator_high=Er2,
-        rate=k_cr6h * site_density,
+        rate=k_cr6 * b_cr * site_density,
+    )
+    cross6s = EnergyTransferUpconversion(
+        sensitizer_high=Er6s,
+        sensitizer_low=Er3,
+        activator_low=Er1,
+        activator_high=Er2,
+        rate=k_cr6 * a_cr * site_density,
     )
     cross4 = EnergyTransferUpconversion(
         sensitizer_high=Er4,
