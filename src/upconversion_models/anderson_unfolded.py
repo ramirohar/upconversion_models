@@ -13,7 +13,6 @@ from jablonski.transitions import (
 )
 from pint import get_application_registry
 
-from .jablonski_patch import InspectableSpectroscopySystem
 from .utils import h, c
 
 u = get_application_registry()
@@ -50,8 +49,8 @@ class ManifoldThermalization(SpectroscopicSystem):
     thermalization_down = MassAction(reactants=[high], products=[low], rate=rate_down)
 
 
-class System(InspectableSpectroscopySystem):
-    ## Parameter values taken from 2003-Anderson's model
+class AndersonModelUnfolded(SpectroscopicSystem):
+    ## Parameter values taken from 2013-Anderson's model
     ## 6th level unfolded in two
 
     yb_cross_section: Parameter = assign(default=1e-20 * u.cm**2)  # no value reported

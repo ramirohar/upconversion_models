@@ -199,14 +199,5 @@ def piecewise(
         state.update({k: ds[str(k)].values[-1] for k in sim.compiled.variables})
         dss.append(ds)
 
-    ds = xr.concat(dss, dim="time")
-    return ds
-
-
-class InspectableSpectroscopySystem(SpectroscopicSystem):
-    def to_dict(self) -> dict[str, pint.Quantity | float | int]:
-        cfg_dict = {}
-        for val in self._yield(Parameter):
-            if isinstance(val.default, pint.Quantity | float | int):
-                cfg_dict[val.name] = val.default
-        return cfg_dict
+#     ds = xr.concat(dss, dim="time")
+#     return ds
