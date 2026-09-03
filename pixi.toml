@@ -13,4 +13,4 @@ matplotlib = ">=3.11.0,<4"
 ipykernel = ">=7.3.0,<8"
 
 [pypi-dependencies]
-upconversion_models = {path = ".", editable = true}
+upconversion_models = { path = ".", editable = true }

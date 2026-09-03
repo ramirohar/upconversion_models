@@ -1,7 +1,16 @@
 version: 7
 platforms:
 - name: linux-64
+  virtual-packages:
+  - __unix=0=0
+  - __linux=4.18
+  - __glibc=2.28
+  - __archspec=0=x86_64
 - name: osx-arm64
+  virtual-packages:
+  - __unix=0=0
+  - __osx=13.0
+  - __archspec=0=m1
 environments:
   default:
     channels:
@@ -181,16 +190,15 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.16.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.8.2-pyhd8ed1ab_0.conda
-      - pypi: .
-      - pypi: https://files.pythonhosted.org/packages/02/4a/577bb3926c808afeb096120f9e927c987ded83980c66f6701572320fa72f/jablonski-0.2.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/0a/ac/c71db56079a5966ea365d29be0dafee6fd5ab9b8c7914b6507bc1a179134/pint_pandas-0.8.0-py3-none-any.whl
+      - pypi: ./
+      - pypi: git+https://github.com/dyscolab/jablonski.git?rev=8647489#8647489e9db5f3d9a345f4bd05cec6e1957b0a35
+      - pypi: git+https://github.com/dyscolab/poincare.git?rev=0b4b47d#0b4b47d8be631f038ed1a4ba59b83fc40c2651f8
       - pypi: https://files.pythonhosted.org/packages/10/b9/fd41f1f6af13a1a1212a06bb377b17762feaa6d656947bf666f76300fc05/statsmodels-0.14.6-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/1b/dd/a9fe6a0a09512da23951c68bf36466aeecd89def3183dc095edbc807ddc5/pint-0.25.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/27/cd/c883e1a7c447479d6e13985565080e3fea88ab5a107c21684c813dba1875/flexcache-0.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/51/9d/d580ae9bf9ce130102228215dc85aad5ba055ad78218057246b583f44fc5/symbolite-1.1.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/57/5b/28365212062939d213802e5e5fe855cdb231e1c2a93254ba1690066504e3/xarray-2026.7.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/6f/f5/0538ca92fd0bf53e2c6cb997bd19285e0ffc12afc9193abd831423279435/scipy_events-0.4.4-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/74/c2/efa8980ec1297b9e73166f961fb7eb36b638fce7f9185c67b7e1a62d356c/poincare-1.1.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/99/55/db07de81b5c630da5cbf5c7df646580ca26dfaefa593667fc6f2fe016d2e/tabulate-0.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/99/68/1237369725aa617bb358263d535803e3053fdbc593513ec5ed9c9896b5b6/pandas-3.0.3-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/f1/70/ba4b949bdc0490ab78d545459acd7702b211dfccf7eb89bbc1060f52818d/patsy-1.0.2-py2.py3-none-any.whl
@@ -313,17 +321,16 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zeromq-4.3.5-h10816f8_11.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.3.3-hed4e4f5_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hbf9d68e_6.conda
-      - pypi: .
-      - pypi: https://files.pythonhosted.org/packages/02/4a/577bb3926c808afeb096120f9e927c987ded83980c66f6701572320fa72f/jablonski-0.2.0-py3-none-any.whl
+      - pypi: ./
+      - pypi: git+https://github.com/dyscolab/jablonski.git?rev=8647489#8647489e9db5f3d9a345f4bd05cec6e1957b0a35
+      - pypi: git+https://github.com/dyscolab/poincare.git?rev=0b4b47d#0b4b47d8be631f038ed1a4ba59b83fc40c2651f8
       - pypi: https://files.pythonhosted.org/packages/02/73/0291a64843270f4efb86cdcf2ee0f2048631b65ec6b405398b2b4dbf11bf/scipy-1.18.0-cp313-cp313-macosx_12_0_arm64.whl
-      - pypi: https://files.pythonhosted.org/packages/0a/ac/c71db56079a5966ea365d29be0dafee6fd5ab9b8c7914b6507bc1a179134/pint_pandas-0.8.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1b/dd/a9fe6a0a09512da23951c68bf36466aeecd89def3183dc095edbc807ddc5/pint-0.25.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/27/cd/c883e1a7c447479d6e13985565080e3fea88ab5a107c21684c813dba1875/flexcache-0.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/51/9d/d580ae9bf9ce130102228215dc85aad5ba055ad78218057246b583f44fc5/symbolite-1.1.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/53/dd/d8cfa7922fc6dc3c56fa6c59b348ea7de829a94cd73208c6f8202dd33f17/statsmodels-0.14.6-cp313-cp313-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/57/5b/28365212062939d213802e5e5fe855cdb231e1c2a93254ba1690066504e3/xarray-2026.7.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/6f/f5/0538ca92fd0bf53e2c6cb997bd19285e0ffc12afc9193abd831423279435/scipy_events-0.4.4-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/74/c2/efa8980ec1297b9e73166f961fb7eb36b638fce7f9185c67b7e1a62d356c/poincare-1.1.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/7f/ae/6a6493c783a101f165e4356953ba3c74d6f77f0042fa7d753da9dfbb640c/pandas-3.0.3-cp313-cp313-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/99/55/db07de81b5c630da5cbf5c7df646580ca26dfaefa593667fc6f2fe016d2e/tabulate-0.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f1/70/ba4b949bdc0490ab78d545459acd7702b211dfccf7eb89bbc1060f52818d/patsy-1.0.2-py2.py3-none-any.whl
@@ -1640,7 +1647,7 @@ packages:
   license: PSF-2.0
   license_family: PSF
   purls:
-  - pkg:pypi/matplotlib?source=compressed-mapping
+  - pkg:pypi/matplotlib?source=hash-mapping
   run_exports: {}
   size: 8974852
   timestamp: 1782829528425
@@ -1674,7 +1681,7 @@ packages:
   license: BSD-3-Clause
   license_family: BSD
   purls:
-  - pkg:pypi/numpy?source=compressed-mapping
+  - pkg:pypi/numpy?source=hash-mapping
   run_exports:
     weak:
     - numpy >=1.25,<3
@@ -1767,7 +1774,7 @@ packages:
   - openjpeg >=2.5.4,<3.0a0
   license: HPND
   purls:
-  - pkg:pypi/pillow?source=compressed-mapping
+  - pkg:pypi/pillow?source=hash-mapping
   run_exports: {}
   size: 1077037
   timestamp: 1782912080163
@@ -2491,7 +2498,7 @@ packages:
   license: Apache-2.0
   license_family: Apache
   purls:
-  - pkg:pypi/asttokens?source=compressed-mapping
+  - pkg:pypi/asttokens?source=hash-mapping
   run_exports: {}
   size: 34639
   timestamp: 1783975742052
@@ -2551,7 +2558,7 @@ packages:
   license: BSD-2-Clause
   license_family: BSD
   purls:
-  - pkg:pypi/decorator?source=compressed-mapping
+  - pkg:pypi/decorator?source=hash-mapping
   run_exports: {}
   size: 16102
   timestamp: 1779115228886
@@ -2698,7 +2705,7 @@ packages:
   license: BSD-3-Clause
   license_family: BSD
   purls:
-  - pkg:pypi/ipykernel?source=compressed-mapping
+  - pkg:pypi/ipykernel?source=hash-mapping
   run_exports: {}
   size: 138635
   timestamp: 1781101665847
@@ -2749,7 +2756,7 @@ packages:
   - python
   license: Apache-2.0 AND MIT
   purls:
-  - pkg:pypi/jedi?source=compressed-mapping
+  - pkg:pypi/jedi?source=hash-mapping
   run_exports: {}
   size: 2715215
   timestamp: 1782251948616
@@ -2876,7 +2883,7 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/platformdirs?source=compressed-mapping
+  - pkg:pypi/platformdirs?source=hash-mapping
   run_exports: {}
   size: 26412
   timestamp: 1784376970393
@@ -3050,7 +3057,7 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/wcwidth?source=compressed-mapping
+  - pkg:pypi/wcwidth?source=hash-mapping
   run_exports: {}
   size: 132415
   timestamp: 1782771807703
@@ -3164,7 +3171,7 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/debugpy?source=compressed-mapping
+  - pkg:pypi/debugpy?source=hash-mapping
   run_exports: {}
   size: 2754468
   timestamp: 1780390249891
@@ -3862,7 +3869,7 @@ packages:
   license: BSD-3-Clause
   license_family: BSD
   purls:
-  - pkg:pypi/numpy?source=compressed-mapping
+  - pkg:pypi/numpy?source=hash-mapping
   run_exports:
     weak:
     - numpy >=1.25,<3
@@ -3934,7 +3941,7 @@ packages:
   - libjpeg-turbo >=3.1.4.1,<4.0a0
   license: HPND
   purls:
-  - pkg:pypi/pillow?source=compressed-mapping
+  - pkg:pypi/pillow?source=hash-mapping
   run_exports: {}
   size: 990406
   timestamp: 1782912213683
@@ -4166,16 +4173,33 @@ packages:
     - zstd >=1.5.7,<1.6.0a0
   size: 433413
   timestamp: 1764777166076
-- pypi: .
+- pypi: ./
   name: upconversion-models
   requires_dist:
-  - jablonski
-- pypi: https://files.pythonhosted.org/packages/02/4a/577bb3926c808afeb096120f9e927c987ded83980c66f6701572320fa72f/jablonski-0.2.0-py3-none-any.whl
+  - jablonski @ git+https://github.com/dyscolab/jablonski.git@8647489
+  - poincare @ git+https://github.com/dyscolab/poincare.git@0b4b47d
+- pypi: git+https://github.com/dyscolab/jablonski.git?rev=8647489#8647489e9db5f3d9a345f4bd05cec6e1957b0a35
   name: jablonski
-  version: 0.2.0
-  sha256: 7ba4cd5ebb8e96eb568a92c18d87c921ea963d77503f2619c22745bb1b5de3ac
+  version: 0.3.1
   requires_dist:
-  - poincare>=1.1.1
+  - poincare>=1.1.2
+  requires_python: '>=3.12'
+- pypi: git+https://github.com/dyscolab/poincare.git?rev=0b4b47d#0b4b47d8be631f038ed1a4ba59b83fc40c2651f8
+  name: poincare
+  version: 1.1.2
+  requires_dist:
+  - numpy
+  - pandas
+  - xarray
+  - pint-xarray
+  - pint
+  - scipy
+  - symbolite>=1.1.0
+  - tabulate
+  - typing-extensions
+  - scipy-events>=0.3.1
+  - statsmodels
+  - ipywidgets ; extra == 'interactive'
   requires_python: '>=3.12'
 - pypi: https://files.pythonhosted.org/packages/02/73/0291a64843270f4efb86cdcf2ee0f2048631b65ec6b405398b2b4dbf11bf/scipy-1.18.0-cp313-cp313-macosx_12_0_arm64.whl
   name: scipy
@@ -4223,38 +4247,6 @@ packages:
   - ruff>=0.12.0 ; extra == 'dev'
   - cython-lint>=0.12.2 ; extra == 'dev'
   requires_python: '>=3.12'
-- pypi: https://files.pythonhosted.org/packages/0a/ac/c71db56079a5966ea365d29be0dafee6fd5ab9b8c7914b6507bc1a179134/pint_pandas-0.8.0-py3-none-any.whl
-  name: pint-pandas
-  version: 0.8.0
-  sha256: 40ee8a85f0923695fa7dcc6927caa3043627e1561c056e9f4499fb2e7478f779
-  requires_dist:
-  - pint>=0.24
-  - pandas>=3.0
-  - packaging>=26.0
-  - pytest ; extra == 'test'
-  - pytest-mpl ; extra == 'test'
-  - pytest-cov ; extra == 'test'
-  - pytest-subtests ; extra == 'test'
-  - codecov ; extra == 'test'
-  - coveralls ; extra == 'test'
-  - nbval ; extra == 'test'
-  - pyarrow ; extra == 'test'
-  - sphinx>=6,<8.2 ; extra == 'docs'
-  - ipython<=8.12 ; extra == 'docs'
-  - nbsphinx ; extra == 'docs'
-  - jupyter-client ; extra == 'docs'
-  - ipykernel ; extra == 'docs'
-  - graphviz ; extra == 'docs'
-  - pooch ; extra == 'docs'
-  - sparse ; extra == 'docs'
-  - serialize ; extra == 'docs'
-  - pygments>=2.4 ; extra == 'docs'
-  - sphinx-book-theme>=1.1.0 ; extra == 'docs'
-  - sphinx-copybutton ; extra == 'docs'
-  - sphinx-design ; extra == 'docs'
-  - matplotlib ; extra == 'docs'
-  - uncertainties-pandas ; extra == 'docs'
-  requires_python: '>=3.11'
 - pypi: https://files.pythonhosted.org/packages/10/b9/fd41f1f6af13a1a1212a06bb377b17762feaa6d656947bf666f76300fc05/statsmodels-0.14.6-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
   name: statsmodels
   version: 0.14.6
@@ -4459,25 +4451,6 @@ packages:
   - numpy
   - scipy
   requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/74/c2/efa8980ec1297b9e73166f961fb7eb36b638fce7f9185c67b7e1a62d356c/poincare-1.1.1-py3-none-any.whl
-  name: poincare
-  version: 1.1.1
-  sha256: 348578e11fcebf3d2ca83bfcb03556501ed25130efb8b8c2df0ff9b0006fbc9b
-  requires_dist:
-  - numpy
-  - pandas
-  - xarray
-  - pint-xarray
-  - pint
-  - pint-pandas
-  - scipy
-  - symbolite>=1.1.0
-  - tabulate
-  - typing-extensions
-  - scipy-events>=0.3.1
-  - statsmodels
-  - ipywidgets ; extra == 'interactive'
-  requires_python: '>=3.12'
 - pypi: https://files.pythonhosted.org/packages/7f/ae/6a6493c783a101f165e4356953ba3c74d6f77f0042fa7d753da9dfbb640c/pandas-3.0.3-cp313-cp313-macosx_11_0_arm64.whl
   name: pandas
   version: 3.0.3
