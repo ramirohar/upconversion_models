@@ -1,28 +1,273 @@
-from itertools import chain, pairwise
-from typing import Iterable, Mapping
+from __future__ import annotations
+
+from typing import (
+    Generator,
+    Hashable,
+    Iterable,
+    Mapping,
+    Sequence,
+    override,
+)
 
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.typing as npt
 import pint
-import scipy.constants as constants
+import poincare
 import xarray as xr
-from jablonski._typing import Pumper, Time
-from jablonski.simulation import lines_to_energies
+from jablonski._typing import Time
+from jablonski.simulation import piecewise
 from jablonski.states import SpectroscopicSystem
-from jablonski.util import SpectraKind, emission_transitions
-from poincare import Parameter, Simulator, SteadyState, solvers
-from poincare.simulator import Components, Initial
+from jablonski.util import (
+    Fluorescence,
+    Phosphorescence,
+    RadiativeDecay,
+    SpectraKind,
+)
+import numpy.typing as npt
+from numpy.typing import ArrayLike
+from poincare import Parameter, System, solvers
+from poincare.compile import SystemCompiler
+from poincare.simulator import Components
+from poincare.types import Initial
+from scipy_events import Events
 from symbolite import Real
+from symbolite.core.value import Value
 
 from upconversion_models.utils import c, h
 
+u = pint.get_application_registry()
 
-def spectral_steady_state_emission(
-    system: SpectroscopicSystem,
-    excitation: Mapping[Components, Initial],
-    solver=solvers.LSODA(),
+
+class TransformGen:
+    def get(self, system: type[System] | System) -> Mapping[Hashable, Value]: ...
+
+
+class PostGen:
+    def get(self, system: type[System] | System) -> dict: ...
+
+
+class LineEnergyPost(PostGen):
+    def get(self, system) -> dict:
+        return {
+            f"line_{transition}": transition.energy_difference
+            for transition in emission_transitions(system, "emission")
+        }
+
+
+class EmissionTransform(TransformGen):
+    def __init__(self, kind: SpectraKind):
+        self.kind: SpectraKind = kind
+
+    def get(self, system: type[System] | System):
+
+        lines = {
+            f"line_{transition}": transition
+            for transition in emission_transitions(system, kind=self.kind)
+        }
+
+        transform: dict[Hashable, Value] = {
+            k: v.radiative_decay.rate_law for k, v in lines.items()
+        }
+        return transform
+
+
+class Simulator(poincare.Simulator):
+    def __init__(
+        self,
+        system: System | type[System],
+        /,
+        *,
+        backend: Backend = "numpy",
+        solver: solvers.Solver = solvers.LSODA(),
+        append_transform: bool = False,
+    ):
+        self.model = system
+        compiler = SystemCompiler(self.model, backend=backend)
+        self.compiled = compiler.compiled
+        self.transform = self._compile_transform(None)
+        self.values = {}
+        self.solver = solver
+        self.append_transform = append_transform
+        self.post = {}
+
+    def with_values(
+        self, values: Mapping[Components, Initial], /, *, append: bool = True
+    ) -> Simulator:
+        sim = self.__class__.__new__(self.__class__)
+        sim.model = self.model
+        sim.compiled = self.compiled
+        sim.transform = self.transform
+        sim.values = values if not append else self.values | values
+        sim.solver = self.solver
+        sim.post = self.post
+        return sim
+
+    def with_solver(self, solver: solvers.Solver, /) -> Simulator:
+        sim = self.__class__.__new__(self.__class__)
+        sim.model = self.model
+        sim.compiled = self.compiled
+        sim.transform = self.transform
+        sim.values = self.values
+        sim.solver = solver
+        sim.post = self.post
+        return sim
+
+    def with_transform(
+        self,
+        transform: Sequence[Value]
+        | Mapping[Hashable, Value]
+        | None
+        | TransformGen = None,
+        /,
+        *,
+        append: bool = False,
+    ) -> Simulator:
+        if isinstance(transform, TransformGen):
+            transform = transform.get(self.model)
+        sim = self.__class__.__new__(self.__class__)
+        sim.model = self.model
+        sim.compiled = self.compiled
+        sim.transform = sim._compile_transform(transform, append)
+        sim.values = self.values
+        sim.solver = self.solver
+        sim.post = self.post
+        return sim
+
+    def with_post(self, post: PostGen | dict) -> Simulator:
+        if isinstance(post, PostGen):
+            post = post.get(self.model)
+        sim = self.__class__.__new__(self.__class__)
+        sim.model = self.model
+        sim.compiled = self.compiled
+        sim.transform = self.transform
+        sim.values = self.values
+        sim.solver = self.solver
+        sim.post = post
+        return sim
+
+    def solve(
+        self,
+        # values: Mapping[Components, Initial | Value] = {},
+        *,
+        t_span: tuple[float, float] | None = None,
+        save_at: ArrayLike | None = None,
+        # solver: solvers.Solver = solvers.LSODA(),
+        events: Sequence[Events] = (),
+        check_dimensionality: bool = True,
+    ) -> xr.DataTree:
+        ds = super().solve(
+            t_span=t_span,
+            save_at=save_at,
+            events=events,
+            check_dimensionality=check_dimensionality,
+        )
+        ds.attrs = self.post
+        return ds
+
+
+class SteadyState(poincare.SteadyState):
+    @override
+    def sweep(
+        self,
+        sim: poincare.Simulator,
+        /,
+        *,
+        variable: Components,
+        values: Iterable[Initial],
+    ):
+        results = {v: self.solve(sim, values={variable: v}) for v in values}
+        return xr.Dataset(
+            {
+                str(var): xr.DataArray(
+                    np.array(
+                        [
+                            results[v][var].item().magnitude
+                            if isinstance(results[v][var].item(), pint.Quantity)
+                            else results[v][var].item()
+                            for v in values
+                        ]
+                    ),
+                    dims=str(variable),
+                    coords={str(variable): values},
+                )
+                for var in [str(var) for var in sim.transform.output.keys()]
+            }
+            | {
+                "time": xr.DataArray(
+                    np.array([results[v]["time"].item() for v in values]),
+                    dims=str(variable),
+                    coords={str(variable): values},
+                ),
+                "event": xr.DataArray(
+                    np.array([results[v]["event"].item() for v in values]),
+                    dims=str(variable),
+                    coords={str(variable): values},
+                ),
+            }
+        )
+
+
+def emission_transitions(
+    system: System | type[System],
     kind: SpectraKind = "emission",
+) -> Generator[RadiativeDecay, None, None]:
+    if kind == "emission":
+        include = (Fluorescence, Phosphorescence)
+    elif kind == "fluorescence":
+        include = Fluorescence
+    elif kind == "phosphorescence":
+        include = Phosphorescence
+    else:
+        raise ValueError(f"kind must be {SpectraKind}")
+
+    for transition in system._yield(include):
+        if isinstance(transition, RadiativeDecay):
+            yield transition
+
+
+def emission_transform(
+    system: SpectroscopicSystem, kind: SpectraKind = "emission"
+) -> Mapping[Hashable, Value]:
+    lines = {
+        f"line_{transition}": transition
+        for transition in emission_transitions(system, kind=kind)
+    }
+
+    transform = {k: v.radiative_decay.rate_law for k, v in lines.items()}
+    return transform
+
+
+def spectral_steady_state(
+    sim: poincare.Simulator,
+    excitation: Mapping[Components, Initial],
+    kind: SpectraKind = "emission",
+) -> xr.DataTree:
+    lines = {
+        f"line_{transition}": transition
+        for transition in emission_transitions(sim.model, kind=kind)
+    }
+
+    transform = {k: v.radiative_decay.rate_law for k, v in lines.items()}
+
+    sim = sim.with_transform(transform)
+
+    steady = SteadyState()
+
+    ds = steady.solve(sim, values=excitation)
+
+    for line in lines:
+        ds.attrs[line] = lines[line].energy_difference
+
+    return ds
+
+
+# Update this to work with update
+def spectral_steady_sweep(
+    sim: Simulator,
+    variable: Components,
+    values: Iterable[Initial],
+    kind: SpectraKind = "emission",
+    solver=solvers.LSODA(),
 ):
     lines = {
         f"line_{transition}": transition
@@ -35,12 +280,26 @@ def spectral_steady_state_emission(
 
     steady = SteadyState(solver=solver)
 
-    ds = steady.solve(sim, values=excitation)
+    results = {v: steady.solve(sim, values={variable: v}) for v in values}
+
+    ds = xr.Dataset(
+        {
+            line: xr.DataArray(
+                np.array(
+                    [results[val][line].values.item() for val in values],
+                ),
+                dims=str(variable),
+                coords={str(variable): values},
+            )
+            for line in lines
+        }
+    )
 
     for line in lines:
         ds.attrs[line] = lines[line].energy_difference
 
     return ds
+
 
 def wavelength_to_rgb(wavelength, gamma=0.8):
     """Aproxima el color RGB percibido para una longitud de onda en nm."""
@@ -74,17 +333,13 @@ def wavelength_to_rgb(wavelength, gamma=0.8):
     B = (B * factor) ** gamma if B > 0 else 0.0
     return (R, G, B)
 
+
 def graph_spectra(
-    system: SpectroscopicSystem,
-    excitation: Mapping[Components, Initial],
+    ds: xr.DataTree,
     width=5,
-    solver=solvers.LSODA(),
-    kind: SpectraKind = "emission",
 ):
     def gaussian(x, mu, A, sigma):
         return A * np.exp(-(((x - mu) / sigma) ** 2))
-
-    ds = spectral_steady_state_emission(system, excitation, solver, kind)
 
     x = np.arange(350, 750, 1)
     y = np.zeros(x.size)
@@ -92,112 +347,88 @@ def graph_spectra(
     for line, energy in ds.attrs.items():
         wavelength = 1 / (energy.magnitude / (h * c)).magnitude * 1e7
         y += gaussian(x, wavelength, ds[line].values.item(), width)
-        if wavelength < x.max() and wavelength > x.min(): 
+        if wavelength < x.max() and wavelength > x.min():
             plt.axvline(wavelength, ls="--", color="gray")
-            plt.text(x=wavelength -5, y=1.07, s=line.removeprefix("line_"), rotation=90)
+            plt.text(
+                x=wavelength - 5, y=1.07, s=line.removeprefix("line_"), rotation=90
+            )
 
     for i in range(len(x) - 1):
         color = wavelength_to_rgb(x[i])
-        plt.fill_between(x[i:i + 2], (y/y.max())[i:i + 2], color=color, alpha=0.1)
+        plt.fill_between(x[i : i + 2], (y / y.max())[i : i + 2], color=color, alpha=0.1)
     plt.xlabel("Wavelength [nm]")
     plt.ylabel("Normalized intensity [u.a.]")
-    return plt.plot(x, y/y.max(), color="black", lw=1)
+    return plt.plot(x, y / y.max(), color="black", lw=1)
 
 
 def spectral_time_resolved_emission(
-    system: SpectroscopicSystem,
+    sim: Simulator,
     excitation: dict[Time, Mapping[Components, Initial | Real | None]],
     save_at: npt.NDArray[np.float64],
     kind: SpectraKind = "emission",
     join_by_energy: bool = False,
-    solver=solvers.LSODA(),
 ) -> xr.Dataset:
     """Single transition square excitation."""
-
-    lines = {
-        f"line_{transition}": transition
-        for transition in emission_transitions(system, kind=kind)
-    }
-
-    transform = {k: v.radiative_decay.rate_law for k, v in lines.items()}
-
-    sim = Simulator(system, transform=transform, append_transform=True)
-    ds = piecewise(sim, events=excitation, save_at=save_at, solver=solver)
-    if not join_by_energy:
-        for line in lines:
-            ds.attrs[line] = lines[line].energy_difference
-        return ds[list(lines.keys())]
-    else:
-        return lines_to_energies(lines, ds)
+    ds = piecewise(sim, events=excitation, save_at=save_at)
+    return ds
+    # if not join_by_energy:
+    #     for line in lines:
+    #         ds.attrs[line] = lines[line].energy_difference
+    #     return ds[list(lines.keys())]
+    # else:
+    #     return lines_to_energies(lines, ds)
 
 
-def spectral_steady_sweep(
-    system: SpectroscopicSystem,
-    variable: Components,
-    values: Iterable[Initial],
-    kind: SpectraKind = "emission",
-    solver=solvers.LSODA(),
-):
-    lines = {
-        f"line_{transition}": transition
-        for transition in emission_transitions(system, kind=kind)
-    }
-
-    transform = {k: v.radiative_decay.rate_law for k, v in lines.items()}
-
-    sim = Simulator(system, transform=transform, append_transform=True)
-
-    steady = SteadyState(solver=solvers.LSODA())
-
-    results = {v: steady.solve(sim, values={variable: v}) for v in values}
-
-    return xr.Dataset(
-        {
-            line: xr.DataArray(
-                np.array(
-                    [results[val][line] for val in values],
-                ),
-                dims=str(variable),
-                coords={str(variable): values},
-            )
-            for line in lines
+class PulsedExcitation:
+    def __init__(
+        self, pulse_width: pint.Quantity, pulse_height: pint.Quantity, pump: Parameter
+    ) -> None:
+        self.excitation = {
+            0 * u.s: {pump: pulse_height},
+            pulse_width: {pump: 0 * pulse_height.units},
         }
-    )
+
+    def solve(
+        self,
+        sim: Simulator,
+        save_at: npt.NDArray[np.float64],
+    ) -> xr.Dataset:
+        return piecewise(sim, events=self.excitation, save_at=save_at)
 
 
-def piecewise(
-    sim: Simulator,
-    *,
-    events: dict[Time, Mapping[Components, Initial | Real | None]],
-    save_at: npt.NDArray[np.float64],
-    solver=solvers.LSODA(),
-) -> xr.Dataset:
-    adimensionalized_events = {
-        k.m_as("s") if isinstance(k, pint.Quantity) else k: v for k, v in events.items()
-    }
-    event_keys = list(adimensionalized_events.keys())
-    t_events = np.sort(event_keys)
-    save_at = np.union1d(save_at, t_events)
-    pos = np.searchsorted(save_at, t_events)
-    save_ats = np.split(save_at, pos + 1)
-    t_spans = pairwise(chain((0,), t_events, (save_at[-1],)))
+# def piecewise(
+#     sim: Simulator,
+#     *,
+#     events: dict[Time, Mapping[Components, Initial | Real | None]],
+#     save_at: npt.NDArray[np.float64],
+#     # solver=solvers.LSODA(),
+# ) -> xr.Dataset:
+#     adimensionalized_events = {
+#         k.m_as("s") if isinstance(k, pint.Quantity) else k: v for k, v in events.items()
+#     }
+#     event_keys = list(adimensionalized_events.keys())
+#     t_events = np.sort(event_keys)
+#     save_at = np.union1d(save_at, t_events)
+#     pos = np.searchsorted(save_at, t_events)
+#     save_ats = np.split(save_at, pos + 1)
+#     t_spans = pairwise(chain((0,), t_events, (save_at[-1],)))
 
-    dss = []
-    state = {}
-    for t_span, save_at in zip(t_spans, save_ats):
-        ds = sim.solve(t_span=t_span, save_at=save_at, values=state, solver=solver)
-        for k, v in adimensionalized_events.get(save_at[-1], {}).items():
-            if v is None and k in state:
-                del state[k]
-            else:
-                state[k] = v
-            # str(k) porque en el output no usamos el objeto Variable aun
-            as_str = str(k)
-            if as_str in ds:
-                ds[as_str].values[-1] = v
+#     dss = []
+#     state = {}
+#     for t_span, save_at in zip(t_spans, save_ats):
+#         ds = sim.with_values(state).solve(t_span=t_span, save_at=save_at)
+#         for k, v in adimensionalized_events.get(save_at[-1], {}).items():
+#             if v is None and k in state:
+#                 del state[k]
+#             else:
+#                 state[k] = v
+#             # str(k) porque en el output no usamos el objeto Variable aun
+#             as_str = str(k)
+#             if as_str in ds:
+#                 ds[as_str].values[-1] = v
 
-        state.update({k: ds[str(k)].values[-1] for k in sim.compiled.variables})
-        dss.append(ds)
+#         state.update({k: ds[str(k)].values[-1] for k in sim.compiled.variables})
+#         dss.append(ds)
 
 #     ds = xr.concat(dss, dim="time")
 #     return ds
