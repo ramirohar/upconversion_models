@@ -7,13 +7,14 @@ from jablonski import (
 )
 from jablonski.transitions import (
     Absorption,
-    Fluorescence,   
+    Fluorescence,
     MassAction,
     InternalConversion,
 )
 from pint import get_application_registry
 
 from .utils import h, c
+
 u = get_application_registry()
 
 wl = 9.8e-7 * u.m  # IR Wavelength
@@ -95,8 +96,8 @@ class AndersonModel(SpectroscopicSystem):
     Yb1: SingletState = initial(
         energy=0 * energy_factor,
         spin_multiplicity="singlet",
-        default=yb_concetration * (1 - isolated_percentage),
-    )
+        default=yb_concetration * (1 - isolated_percentage), # type: ignore
+    ) 
 
     Yb2: SingletState = initial(
         energy=10200 * energy_factor, spin_multiplicity="singlet", default=0
@@ -105,7 +106,7 @@ class AndersonModel(SpectroscopicSystem):
     Er1: SingletState = initial(
         energy=0 * energy_factor,
         spin_multiplicity="singlet",
-        default=er_concetration * (1 - isolated_percentage),
+        default=er_concetration * (1 - isolated_percentage), # type: ignore
     )
 
     Er2: SingletState = initial(
@@ -149,6 +150,7 @@ class AndersonModel(SpectroscopicSystem):
 
     rad = Fluorescence(ground=Yb1, excited=Yb2, rate=yb_rad)
     norad = InternalConversion(low=Yb1, high=Yb2, rate=yb_nr)
+
     # Yb -> Er transitions
 
     etu13 = EnergyTransferUpconversion(
