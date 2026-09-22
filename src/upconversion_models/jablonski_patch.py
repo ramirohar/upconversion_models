@@ -34,6 +34,7 @@ from symbolite import Real
 from symbolite.core.value import Value
 
 from upconversion_models.utils import c, h
+from poincare.helpers import get_from
 
 u = pint.get_application_registry()
 
@@ -169,14 +170,14 @@ class SteadyState(poincare.SteadyState):
     @override
     def sweep(
         self,
-        sim: poincare.Simulator,
+        sim: Simulator,
         /,
         *,
         variable: Components,
         values: Iterable[Initial],
     ):
         results = {v: self.solve(sim, values={variable: v}) for v in values}
-        return xr.Dataset(
+        ds = xr.Dataset(
             {
                 str(var): xr.DataArray(
                     np.array(
@@ -205,6 +206,8 @@ class SteadyState(poincare.SteadyState):
                 ),
             }
         )
+        ds.attrs = sim.post
+        return ds
 
 
 def emission_transitions(
@@ -383,52 +386,37 @@ class PulsedExcitation:
     def __init__(
         self, pulse_width: pint.Quantity, pulse_height: pint.Quantity, pump: Parameter
     ) -> None:
-        self.excitation = {
-            0 * u.s: {pump: pulse_height},
-            pulse_width: {pump: 0 * pulse_height.units},
-        }
+        self.pulse_width = pulse_width
+        self.pulse_height = pulse_height
+        self.pump = pump
 
     def solve(
         self,
         sim: Simulator,
         save_at: npt.NDArray[np.float64],
     ) -> xr.Dataset:
-        return piecewise(sim, events=self.excitation, save_at=save_at)
+
+        if isinstance(self.pump, str):
+            self.pump = get_from(self.pump, sim.model)
+
+        excitation = {
+            0 * u.s: {self.pump: self.pulse_height},
+            self.pulse_width: {self.pump: 0 * self.pulse_height.units},
+        }
+        return piecewise(sim, events=excitation, save_at=save_at)
+        
+
+def to_dict(values: Mapping[Node, Initial]):
+    d = {}
+    for k, v in values.items():
+        d = d | {k.__repr__(): v.to_tuple() if isinstance(v, pint.Quantity) else v}
+    return d
 
 
-# def piecewise(
-#     sim: Simulator,
-#     *,
-#     events: dict[Time, Mapping[Components, Initial | Real | None]],
-#     save_at: npt.NDArray[np.float64],
-#     # solver=solvers.LSODA(),
-# ) -> xr.Dataset:
-#     adimensionalized_events = {
-#         k.m_as("s") if isinstance(k, pint.Quantity) else k: v for k, v in events.items()
-#     }
-#     event_keys = list(adimensionalized_events.keys())
-#     t_events = np.sort(event_keys)
-#     save_at = np.union1d(save_at, t_events)
-#     pos = np.searchsorted(save_at, t_events)
-#     save_ats = np.split(save_at, pos + 1)
-#     t_spans = pairwise(chain((0,), t_events, (save_at[-1],)))
-
-#     dss = []
-#     state = {}
-#     for t_span, save_at in zip(t_spans, save_ats):
-#         ds = sim.with_values(state).solve(t_span=t_span, save_at=save_at)
-#         for k, v in adimensionalized_events.get(save_at[-1], {}).items():
-#             if v is None and k in state:
-#                 del state[k]
-#             else:
-#                 state[k] = v
-#             # str(k) porque en el output no usamos el objeto Variable aun
-#             as_str = str(k)
-#             if as_str in ds:
-#                 ds[as_str].values[-1] = v
-
-#         state.update({k: ds[str(k)].values[-1] for k in sim.compiled.variables})
-#         dss.append(ds)
-
-#     ds = xr.concat(dss, dim="time")
-#     return ds
+def to_values(dict: dict[str, Any], model):
+    return {
+        get_from(param=param, model=model): u.Quantity.from_tuple(value)
+        if isinstance(value, tuple)
+        else value
+        for param, value in dict.items()
+    }
