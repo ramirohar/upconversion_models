@@ -191,13 +191,13 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.8.2-pyhd8ed1ab_0.conda
       - pypi: ./
-      - pypi: git+https://github.com/dyscolab/jablonski.git?rev=8647489#8647489e9db5f3d9a345f4bd05cec6e1957b0a35
-      - pypi: git+https://github.com/dyscolab/poincare.git?rev=0b4b47d#0b4b47d8be631f038ed1a4ba59b83fc40c2651f8
+      - pypi: git+https://github.com/dyscolab/jablonski.git?rev=07243c4#07243c4eff681d39ea3dc1006a555d013c7659e9
+      - pypi: git+https://github.com/dyscolab/poincare.git?rev=5d72e93#5d72e932d27d553ec171c2ab3dfdfd25ac1ba9ef
       - pypi: https://files.pythonhosted.org/packages/10/b9/fd41f1f6af13a1a1212a06bb377b17762feaa6d656947bf666f76300fc05/statsmodels-0.14.6-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/1b/dd/a9fe6a0a09512da23951c68bf36466aeecd89def3183dc095edbc807ddc5/pint-0.25.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/27/cd/c883e1a7c447479d6e13985565080e3fea88ab5a107c21684c813dba1875/flexcache-0.3-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/51/9d/d580ae9bf9ce130102228215dc85aad5ba055ad78218057246b583f44fc5/symbolite-1.1.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/57/5b/28365212062939d213802e5e5fe855cdb231e1c2a93254ba1690066504e3/xarray-2026.7.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/5e/c6/1c7aa35d6932182e4dc89f4d6cbdbf5b0b6c1557fca2fa09cab0768f3e6b/symbolite-1.1.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/6f/f5/0538ca92fd0bf53e2c6cb997bd19285e0ffc12afc9193abd831423279435/scipy_events-0.4.4-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/99/55/db07de81b5c630da5cbf5c7df646580ca26dfaefa593667fc6f2fe016d2e/tabulate-0.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/99/68/1237369725aa617bb358263d535803e3053fdbc593513ec5ed9c9896b5b6/pandas-3.0.3-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl
@@ -322,14 +322,14 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.3.3-hed4e4f5_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hbf9d68e_6.conda
       - pypi: ./
-      - pypi: git+https://github.com/dyscolab/jablonski.git?rev=8647489#8647489e9db5f3d9a345f4bd05cec6e1957b0a35
-      - pypi: git+https://github.com/dyscolab/poincare.git?rev=0b4b47d#0b4b47d8be631f038ed1a4ba59b83fc40c2651f8
+      - pypi: git+https://github.com/dyscolab/jablonski.git?rev=07243c4#07243c4eff681d39ea3dc1006a555d013c7659e9
+      - pypi: git+https://github.com/dyscolab/poincare.git?rev=5d72e93#5d72e932d27d553ec171c2ab3dfdfd25ac1ba9ef
       - pypi: https://files.pythonhosted.org/packages/02/73/0291a64843270f4efb86cdcf2ee0f2048631b65ec6b405398b2b4dbf11bf/scipy-1.18.0-cp313-cp313-macosx_12_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/1b/dd/a9fe6a0a09512da23951c68bf36466aeecd89def3183dc095edbc807ddc5/pint-0.25.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/27/cd/c883e1a7c447479d6e13985565080e3fea88ab5a107c21684c813dba1875/flexcache-0.3-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/51/9d/d580ae9bf9ce130102228215dc85aad5ba055ad78218057246b583f44fc5/symbolite-1.1.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/53/dd/d8cfa7922fc6dc3c56fa6c59b348ea7de829a94cd73208c6f8202dd33f17/statsmodels-0.14.6-cp313-cp313-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/57/5b/28365212062939d213802e5e5fe855cdb231e1c2a93254ba1690066504e3/xarray-2026.7.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/5e/c6/1c7aa35d6932182e4dc89f4d6cbdbf5b0b6c1557fca2fa09cab0768f3e6b/symbolite-1.1.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/6f/f5/0538ca92fd0bf53e2c6cb997bd19285e0ffc12afc9193abd831423279435/scipy_events-0.4.4-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/7f/ae/6a6493c783a101f165e4356953ba3c74d6f77f0042fa7d753da9dfbb640c/pandas-3.0.3-cp313-cp313-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/99/55/db07de81b5c630da5cbf5c7df646580ca26dfaefa593667fc6f2fe016d2e/tabulate-0.10.0-py3-none-any.whl
@@ -4176,17 +4176,17 @@ packages:
 - pypi: ./
   name: upconversion-models
   requires_dist:
-  - jablonski @ git+https://github.com/dyscolab/jablonski.git@8647489
-  - poincare @ git+https://github.com/dyscolab/poincare.git@0b4b47d
-- pypi: git+https://github.com/dyscolab/jablonski.git?rev=8647489#8647489e9db5f3d9a345f4bd05cec6e1957b0a35
+  - jablonski @ git+https://github.com/dyscolab/jablonski.git@07243c4
+  - poincare @ git+https://github.com/dyscolab/poincare.git@5d72e93
+- pypi: git+https://github.com/dyscolab/jablonski.git?rev=07243c4#07243c4eff681d39ea3dc1006a555d013c7659e9
   name: jablonski
-  version: 0.3.1
+  version: 0.4.0
   requires_dist:
-  - poincare>=1.1.2
+  - poincare>=1.2.0
   requires_python: '>=3.12'
-- pypi: git+https://github.com/dyscolab/poincare.git?rev=0b4b47d#0b4b47d8be631f038ed1a4ba59b83fc40c2651f8
+- pypi: git+https://github.com/dyscolab/poincare.git?rev=5d72e93#5d72e932d27d553ec171c2ab3dfdfd25ac1ba9ef
   name: poincare
-  version: 1.1.2
+  version: 1.2.0
   requires_dist:
   - numpy
   - pandas
@@ -4194,7 +4194,7 @@ packages:
   - pint-xarray
   - pint
   - scipy
-  - symbolite>=1.1.0
+  - symbolite>=1.1.1
   - tabulate
   - typing-extensions
   - scipy-events>=0.3.1
@@ -4354,13 +4354,6 @@ packages:
   - pytest-cov ; extra == 'test'
   - pytest-subtests ; extra == 'test'
   requires_python: '>=3.9'
-- pypi: https://files.pythonhosted.org/packages/51/9d/d580ae9bf9ce130102228215dc85aad5ba055ad78218057246b583f44fc5/symbolite-1.1.0-py3-none-any.whl
-  name: symbolite
-  version: 1.1.0
-  sha256: 1271de5218e28615013fbe934e152f66bc2cdf735b7e1bbaacf04687890ba266
-  requires_dist:
-  - typing-extensions>=4.15
-  requires_python: '>=3.12'
 - pypi: https://files.pythonhosted.org/packages/53/dd/d8cfa7922fc6dc3c56fa6c59b348ea7de829a94cd73208c6f8202dd33f17/statsmodels-0.14.6-cp313-cp313-macosx_11_0_arm64.whl
   name: statsmodels
   version: 0.14.6
@@ -4443,6 +4436,13 @@ packages:
   - types-setuptools ; extra == 'types'
   - types-xlrd ; extra == 'types'
   requires_python: '>=3.11'
+- pypi: https://files.pythonhosted.org/packages/5e/c6/1c7aa35d6932182e4dc89f4d6cbdbf5b0b6c1557fca2fa09cab0768f3e6b/symbolite-1.1.1-py3-none-any.whl
+  name: symbolite
+  version: 1.1.1
+  sha256: 76f0745fd7c95e15b9b303f4243e370e028321c6389058845ff5253b84c22db5
+  requires_dist:
+  - typing-extensions>=4.15
+  requires_python: '>=3.12'
 - pypi: https://files.pythonhosted.org/packages/6f/f5/0538ca92fd0bf53e2c6cb997bd19285e0ffc12afc9193abd831423279435/scipy_events-0.4.4-py3-none-any.whl
   name: scipy-events
   version: 0.4.4

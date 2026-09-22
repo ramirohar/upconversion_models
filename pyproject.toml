@@ -6,8 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "upconversion_models"
 version = "0.1.0"
 dependencies = [
-    "jablonski @ git+https://github.com/dyscolab/jablonski.git@8647489", 
-    "poincare @ git+https://github.com/dyscolab/poincare.git@0b4b47d"
+    "jablonski @ git+https://github.com/dyscolab/jablonski.git@07243c4", 
+    "poincare @ git+https://github.com/dyscolab/poincare.git@5d72e93"
 ]
 
 [tool.setuptools.packages.find]
