@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from itertools import chain, pairwise
 from typing import (
     Generator,
     Hashable,
@@ -12,10 +13,10 @@ from typing import (
 import matplotlib.pyplot as plt
 import numpy as np
 import pint
+import pint_xarray
 import poincare
 import xarray as xr
 from jablonski._typing import Time
-from jablonski.simulation import piecewise
 from jablonski.states import SpectroscopicSystem
 from jablonski.util import (
     Fluorescence,
@@ -362,6 +363,71 @@ def graph_spectra(
     plt.xlabel("Wavelength [nm]")
     plt.ylabel("Normalized intensity [u.a.]")
     return plt.plot(x, y / y.max(), color="black", lw=1)
+
+
+def piecewise(
+    sim: Simulator,
+    *,
+    events: dict[Time, Mapping[Components, Initial | Real | None]],
+    save_at: npt.NDArray[np.float64],
+) -> xr.Dataset:
+    """jablonski's piecewise, with each segment's start time prepended to its save_at.
+
+    poincare's solve starts integrating at save_at[0] and ignores t_span[0], and
+    jablonski's segments start at the first save point after the event, so the
+    stretch between the event and that point was never integrated.
+    """
+    try:
+        event_keys = np.array([key.to(u.s).magnitude for key in events.keys()])
+    except (AttributeError, pint.DimensionalityError):
+        raise pint.PintError(
+            "events keys must be pint Quantities and have time dimensionality."
+        )
+
+    try:
+        adimensional_save_at = save_at.to(u.s).magnitude
+    except (AttributeError, pint.DimensionalityError):
+        raise pint.PintError(
+            "save_at must be pint Quantity and have time dimensionality."
+        )
+    t_events = np.sort(event_keys)
+    adimensional_save_at = np.union1d(adimensional_save_at, t_events)
+    pos = np.searchsorted(adimensional_save_at, t_events)
+    adimensional_save_ats = np.split(adimensional_save_at, pos + 1)
+    adimensional_t_spans = pairwise(chain((0,), t_events, (adimensional_save_at[-1],)))
+    dss = []
+    state = {}
+    for t_span, save_at in zip(adimensional_t_spans, adimensional_save_ats):
+        # Integrate from t_span[0], then drop the added point.
+        prepend = save_at[0] > t_span[0]
+        if prepend:
+            save_at = np.r_[t_span[0], save_at]
+        ds = sim.with_values(state).solve(
+            t_span=np.array(t_span) * u.s, save_at=save_at * u.s
+        )
+        if prepend:
+            ds = ds.isel(time=slice(1, None))
+            save_at = save_at[1:]
+
+        for k, v in events.get(save_at[-1] * u.s, {}).items():
+            if v is None and k in state:
+                del state[k]
+            else:
+                state[k] = v
+            # str(k) porque en el output no usamos el objeto Variable aun
+            as_str = str(k)
+            if as_str in ds:
+                ds[as_str][-1] = v
+
+        state.update({k: ds[str(k)][-1].item() for k in sim.compiled.variables})
+        dss.append(ds.pint.dequantify())
+
+    ds = xr.concat(dss, dim="time")
+
+    pint_xarray.setup_registry(u)
+    ds = ds.pint.quantify()
+    u.force_ndarray_like = False
+    return ds
 
 
 def spectral_time_resolved_emission(
