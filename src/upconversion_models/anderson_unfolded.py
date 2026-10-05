@@ -1,19 +1,27 @@
 from jablonski import (
+    Parameter,
     SingletState,
     SpectroscopicSystem,
-    Parameter,
-    initial,
     assign,
+    initial,
 )
 from jablonski.transitions import (
     Absorption,
     Fluorescence,
-    MassAction,
     InternalConversion,
+    MassAction,
 )
 from pint import get_application_registry
+from symbolite import real
 
-from .utils import h, c
+from upconversion_models.transitions import (
+    TemperatureDependentInternalExcitation,
+    TemperatureDependentInternalRelaxation,
+    TemperatureDependentInternalRelaxationRef,
+)
+
+
+from .utils import c, h, k, hc
 
 u = get_application_registry()
 
@@ -52,6 +60,8 @@ class ManifoldThermalization(SpectroscopicSystem):
 class AndersonModelUnfolded(SpectroscopicSystem):
     ## Parameter values taken from 2013-Anderson's model
     ## 6th level unfolded in two
+    T0: Parameter = assign(default=300 * u.K)
+    T: Parameter = assign(default=300 * u.K)
 
     yb_cross_section: Parameter = assign(default=1e-20 * u.cm**2)  # no value reported
     yb_rad: Parameter = assign(default=393 / u.s)
@@ -101,14 +111,8 @@ class AndersonModelUnfolded(SpectroscopicSystem):
     # Additional parameters
     k_uc2: Parameter = assign(default=2.31e-17 / u.s * u.cm**3)
 
-    # Level 6 poblation parameters
-    fs: Parameter = assign(default=0.9)  # To be complete
-    fh: Parameter = assign(default=1 - fs)
-
     # Manifold rates
-    k_therm: Parameter = assign(default=1e13 / u.s)
-    k_manifold_up: Parameter = assign(default=fh * k_therm)
-    k_manifold_down: Parameter = assign(default=fs * k_therm)
+    k_therm: Parameter = assign(default=1e11 / u.s)
 
     # Parameters introduced (not reported in Anderson's)
     site_density: Parameter = assign(default=1.38e22 / u.cm**3)
@@ -134,46 +138,65 @@ class AndersonModelUnfolded(SpectroscopicSystem):
     )
 
     Er1: SingletState = initial(
-        energy=0 * energy_factor,
+        energy=0 * hc / u.cm,
         spin_multiplicity="singlet",
         default=er_concetration * (1 - isolated_percentage),  # type: ignore
     )
 
     Er2: SingletState = initial(
-        energy=6500 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=6500 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er3: SingletState = initial(
-        energy=10200 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=10200 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er4: SingletState = initial(
-        energy=12500 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=12500 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er5: SingletState = initial(
-        energy=15000 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=15000 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er6s: SingletState = initial(
-        energy=18300 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=18300 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er6h: SingletState = initial(
-        energy=19200 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=19200 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er7: SingletState = initial(
-        energy=20500 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=20500 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er8: SingletState = initial(
-        energy=24500 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=24500 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er9: SingletState = initial(
-        energy=26100 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=26100 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
+
 
     abs = Absorption(
         ground=Yb1,
@@ -269,23 +292,80 @@ class AndersonModelUnfolded(SpectroscopicSystem):
         rate=k_95 * site_density,
     )
 
-    # Manifold balance
+    # 6s_6h thermalization
+    relaxation = TemperatureDependentInternalRelaxation(
+        T=T, source=Er6h, target=Er6s, rate=k_therm / 12
+    )
 
-    manifold = ManifoldThermalization(
-        high=Er6h, low=Er6s, rate_up=k_manifold_up, rate_down=k_manifold_down
+    excitation = TemperatureDependentInternalExcitation(
+        T=T, source=Er6s, target=Er6h, rate=k_therm / 4
     )
 
     # Non radiative decays
-
-    norad9 = InternalConversion(high=Er9, low=Er8, rate=k_nr9)
-    norad8 = InternalConversion(high=Er8, low=Er7, rate=k_nr8)
-    norad7h = InternalConversion(high=Er7, low=Er6h, rate=k_nr7)
-    # norad7s = InternalConversion(high=Er7, low=Er6s, rate=a_nr*k_nr7)
-    norad6h = InternalConversion(high=Er6h, low=Er5, rate=k_nr6s)
-    norad6s = InternalConversion(high=Er6s, low=Er5, rate=k_nr6h)
-    norad5 = InternalConversion(high=Er5, low=Er4, rate=k_nr5)
-    norad4 = InternalConversion(high=Er4, low=Er3, rate=k_nr4)
-    norad3 = InternalConversion(high=Er3, low=Er2, rate=k_nr3)
+    norad9 = TemperatureDependentInternalRelaxationRef(
+        source=Er9,
+        target=Er8,
+        T_A=T0,
+        reference_rate=k_nr9,
+        phonon_wavenumber=350 / u.cm,
+        T=T,
+    )
+    norad8 = TemperatureDependentInternalRelaxationRef(
+        source=Er8,
+        target=Er7,
+        T_A=T0,
+        reference_rate=k_nr8,
+        phonon_wavenumber=350 / u.cm,
+        T=T,
+    )
+    norad7 = TemperatureDependentInternalRelaxationRef(
+        source=Er7,
+        target=Er6h,
+        T_A=T0,
+        reference_rate=k_nr7,
+        phonon_wavenumber=350 / u.cm,
+        T=T,
+    )
+    norad6h = TemperatureDependentInternalRelaxationRef(
+        source=Er6h,
+        target=Er5,
+        T_A=T0,
+        reference_rate=k_nr6h,
+        phonon_wavenumber=350 / u.cm,
+        T=T,
+    )
+    norad6s = TemperatureDependentInternalRelaxationRef(
+        source=Er6s,
+        target=Er5,
+        T_A=T0,
+        reference_rate=k_nr6s,
+        phonon_wavenumber=350 / u.cm,
+        T=T,
+    )
+    norad5 = TemperatureDependentInternalRelaxationRef(
+        source=Er5,
+        target=Er4,
+        T_A=T0,
+        reference_rate=k_nr5,
+        phonon_wavenumber=350 / u.cm,
+        T=T,
+    )
+    norad4 = TemperatureDependentInternalRelaxationRef(
+        source=Er4,
+        target=Er3,
+        T_A=T0,
+        reference_rate=k_nr4,
+        phonon_wavenumber=350 / u.cm,
+        T=T,
+    )
+    norad3 = TemperatureDependentInternalRelaxationRef(
+        source=Er3,
+        target=Er2,
+        T_A=T0,
+        reference_rate=k_nr3,
+        phonon_wavenumber=350 / u.cm,
+        T=T,
+    )
 
     # Radiative decays
 
