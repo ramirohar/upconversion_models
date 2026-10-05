@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, replace
 from itertools import chain, pairwise
 from typing import (
     Generator,
@@ -28,9 +29,10 @@ import numpy.typing as npt
 from numpy.typing import ArrayLike
 from poincare import Parameter, System, solvers
 from poincare.compile import SystemCompiler
-from poincare.simulator import Components
+from poincare.simulator import Components, Problem
 from poincare.types import Initial
-from scipy_events import Events
+from scipy_events import Events, SmallDerivatives
+from scipy_events.typing import Condition
 from symbolite import Real
 from symbolite.core.value import Value
 
@@ -73,6 +75,49 @@ class EmissionTransform(TransformGen):
         return transform
 
 
+@dataclass(frozen=True)
+class EmptyEventSafe:
+    """Solver wrapper that skips the transform for events that never fired.
+
+    poincare's `_solve_ivp_scipy` transforms every entry of `t_events`, and the
+    transform fails on an empty one (e.g. a steady state not reached before t_end).
+    """
+
+    inner: solvers.Solver
+
+    @property
+    def atol(self):
+        return self.inner.atol
+
+    @property
+    def rtol(self):
+        return self.inner.rtol
+
+    def __call__(
+        self,
+        problem: Problem,
+        *,
+        save_at: ArrayLike | None = None,
+        events: Sequence[Events] = (),
+    ):
+        transform = problem.transform
+
+        def safe_transform(t, y, p, out):
+            if np.size(t) == 0:
+                return out
+            return transform(t, y, p, out)
+
+        return self.inner(
+            replace(problem, transform=safe_transform),
+            save_at=save_at,
+            events=events,
+        )
+
+
+def _empty_event_safe(solver: solvers.Solver) -> EmptyEventSafe:
+    return solver if isinstance(solver, EmptyEventSafe) else EmptyEventSafe(solver)
+
+
 class Simulator(poincare.Simulator):
     def __init__(
         self,
@@ -88,7 +133,7 @@ class Simulator(poincare.Simulator):
         self.compiled = compiler.compiled
         self.transform = self._compile_transform(None)
         self.values = {}
-        self.solver = solver
+        self.solver = _empty_event_safe(solver)
         self.append_transform = append_transform
         self.post = {}
 
@@ -110,7 +155,7 @@ class Simulator(poincare.Simulator):
         sim.compiled = self.compiled
         sim.transform = self.transform
         sim.values = self.values
-        sim.solver = solver
+        sim.solver = _empty_event_safe(solver)
         sim.post = self.post
         return sim
 
@@ -167,7 +212,28 @@ class Simulator(poincare.Simulator):
         return ds
 
 
+@dataclass(kw_only=True, frozen=True)
 class SteadyState(poincare.SteadyState):
+    # Independent of the solver tolerance: it decides when the system has stopped
+    # changing, so it must sit above the solver's derivative noise.
+    condition: Condition = SmallDerivatives(atol=1e-12, rtol=1e-6)
+
+    @override
+    def solve(
+        self,
+        sim: Simulator,
+        /,
+        *,
+        values: Mapping[Components, Initial] = {},
+    ):
+        ds = super().solve(sim, values=values)
+        if "event" not in ds or ds["event"].isnull().all():
+            raise RuntimeError(
+                f"no steady state before t_end={self.t_end}: "
+                f"condition {self.condition} was never met."
+            )
+        return ds
+
     @override
     def sweep(
         self,
