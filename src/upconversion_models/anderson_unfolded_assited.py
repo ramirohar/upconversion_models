@@ -12,9 +12,9 @@ from jablonski.transitions import (
     MassAction,
 )
 from pint import get_application_registry
+from symbolite import real
 
 from upconversion_models.transitions import (
-    EnergyTransferUpconversion,
     PhononAssistedEnergyTransfer,
     TemperatureDependentInternalConversionRef,
     TemperatureDependentInternalExcitation,
@@ -42,18 +42,28 @@ class ManifoldThermalization(SpectroscopicSystem):
     thermalization_down = MassAction(reactants=[high], products=[low], rate=rate_down)
 
 
-class AndersonModelUnfolded(SpectroscopicSystem):
+class AndersonModelUnfoldedAssitedETU(SpectroscopicSystem):
     ## Parameter values taken from 2013-Anderson's model
     ## 6th level unfolded in two
-    ## Energy transfers are temperature independent (plain mass action)
     T0: Parameter = assign(default=300 * u.K)
     T: Parameter = assign(default=300 * u.K)
 
-    # Effective phonon energy for multiphonon relaxation
+    # Effective phonon energy for multiphonon relaxation and phonon-assisted transfer
     # Suyver 2006: dominant Raman mode of β-NaYF4 (298, 370, 418 cm-1; 350 cm-1 from
     # the thermal shift and broadening of the Yb3+ zero-phonon line). 298 cm-1 gives
     # the sharper blue and green maxima of Yu 2014, 350 cm-1 slightly better lifetimes
     phonon_wavenumber: Parameter = assign(default=298 / u.cm)
+    # Fraction of endothermic transfers that stays resonant as T -> 0
+    resonant_fraction: Parameter = assign(default=0)
+
+    # Yb3+ 2F5/2 crystal-field components: |1> lies 38 cm-1 above |0>
+    # (Suyver 2006, Fig 4-5: 10 200 and 10 238 cm-1). The Yb -> Er 4I11/2 steps
+    # are resonant from |1> (Suyver 2005; Yu 2014)
+    yb_stark_gap: Parameter = assign(default=38 / u.cm)
+    # Relative efficiency of those transfers from |0> (calibrated against Yu 2014;
+    # 0 reproduces the collapse of the upconversion at 5 K reported by Suyver 2006)
+    yb_ground_efficiency: Parameter = assign(default=0.1)
+
     yb_cross_section: Parameter = assign(default=1e-20 * u.cm**2)  # no value reported
     yb_rad: Parameter = assign(default=393 / u.s)
     yb_nr: Parameter = assign(default=220 / u.s)
@@ -71,7 +81,9 @@ class AndersonModelUnfolded(SpectroscopicSystem):
     k_31: Parameter = assign(default=2e-16 / u.s * u.cm**3)
     k_52: Parameter = assign(default=0 / u.s * u.cm**3)
     k_73: Parameter = assign(default=2.04e-16 / u.s * u.cm**3)
-    k_95: Parameter = assign(default=2.84e-16 / u.s * u.cm**3)
+    # Anderson's 2.84e-16 recalibrated so the red line matches AndersonModel at T0 (5 W/cm²),
+    # compensating the extra Er9 population fed by the 8 -> 9 thermal excitation
+    k_95: Parameter = assign(default=0.977 * 2.84e-16 / u.s * u.cm**3)
 
     # Non radiative rates
     k_nr9: Parameter = assign(default=1.76e6 / u.s)
@@ -88,9 +100,9 @@ class AndersonModelUnfolded(SpectroscopicSystem):
     k_r8: Parameter = assign(default=2_330 / u.s)
     k_r6: Parameter = assign(default=1_510 / u.s)
     # Split of Anderson's k_r6 = 1510 at T0: fs(T0)·k_r6s + (1 - fs(T0))·k_r6h = k_r6,
-    # with k_r6h / k_r6s = C = 5.52 / 3 from the LIR fit of Suta 2025 (C·g2/g1 = 5.52)
-    k_r6s: Parameter = assign(default=1_375 / u.s)
-    k_r6h: Parameter = assign(default=2_529 / u.s)
+    # with k_r6h / k_r6s = 1.53 from the Boltzmann fit to Yu 2014 Fig 5c
+    k_r6s: Parameter = assign(default=1_366 / u.s)
+    k_r6h: Parameter = assign(default=2_086 / u.s)
     k_r5: Parameter = assign(default=2_039 / u.s)
     k_r3: Parameter = assign(default=73 / u.s)
     k_r2: Parameter = assign(default=110 / u.s)
@@ -104,8 +116,8 @@ class AndersonModelUnfolded(SpectroscopicSystem):
     # Additional parameters
     k_uc2: Parameter = assign(default=2.31e-17 / u.s * u.cm**3)
 
-    # Manifold rates: intrinsic 2H11/2 <-> 4S3/2 coupling knr(0) (Suta 2025)
-    k_therm: Parameter = assign(default=2.29e6 / u.s)
+    # Manifold rates
+    k_therm: Parameter = assign(default=1e11 / u.s)
 
     # Parameters introduced (not reported in Anderson's)
     site_density: Parameter = assign(default=1.38e22 / u.cm**3)
@@ -164,9 +176,9 @@ class AndersonModelUnfolded(SpectroscopicSystem):
         default=0,
     )
 
-    # 650 cm-1 above Er6s: high-resolution excitation spectra at 77 K (Suta 2025)
+    # 520 cm-1 above Er6s: Boltzmann fit to Yu 2014 Fig 5c, R_HS = 4.58 exp(-745 K / T)
     Er6h: SingletState = initial(
-        energy=18950 * hc / u.cm,
+        energy=18820 * hc / u.cm,
         spin_multiplicity="singlet",
         default=0,
     )
@@ -201,104 +213,141 @@ class AndersonModelUnfolded(SpectroscopicSystem):
 
     # Yb -> Er transitions
 
-    etu13 = EnergyTransferUpconversion(
+    etu13 = PhononAssistedEnergyTransfer(
         sensitizer_high=Yb2,
         sensitizer_low=Yb1,
         activator_low=Er1,
         activator_high=Er3,
         rate=k_13 * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+        resonant_fraction=resonant_fraction,
+        mismatch=0 / u.cm,
+        sensitizer_stark_gap=yb_stark_gap,
+        sensitizer_ground_efficiency=yb_ground_efficiency,
     )
 
-    etu25 = EnergyTransferUpconversion(
+    etu25 = PhononAssistedEnergyTransfer(
         sensitizer_high=Yb2,
         sensitizer_low=Yb1,
         activator_low=Er2,
         activator_high=Er5,
         rate=k_25 * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+        resonant_fraction=resonant_fraction,
     )
 
-    etu37 = EnergyTransferUpconversion(
+    etu37 = PhononAssistedEnergyTransfer(
         sensitizer_high=Yb2,
         sensitizer_low=Yb1,
         activator_low=Er3,
         activator_high=Er7,
         rate=k_37 * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+        resonant_fraction=resonant_fraction,
+        mismatch=0 / u.cm,
+        sensitizer_stark_gap=yb_stark_gap,
+        sensitizer_ground_efficiency=yb_ground_efficiency,
     )
 
-    etu58 = EnergyTransferUpconversion(
+    etu58 = PhononAssistedEnergyTransfer(
         sensitizer_high=Yb2,
         sensitizer_low=Yb1,
         activator_low=Er5,
         activator_high=Er8,
         rate=k_58 * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+        resonant_fraction=resonant_fraction,
     )
 
-    etu6s9 = EnergyTransferUpconversion(
+    etu6s9 = PhononAssistedEnergyTransfer(
         sensitizer_high=Yb2,
         sensitizer_low=Yb1,
         activator_low=Er6s,
         activator_high=Er9,
         rate=k_6s9 * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+        resonant_fraction=resonant_fraction,
     )
 
-    etu6h9 = EnergyTransferUpconversion(
+    etu6h9 = PhononAssistedEnergyTransfer(
         sensitizer_high=Yb2,
         sensitizer_low=Yb1,
         activator_low=Er6h,
         activator_high=Er9,
         rate=k_6h9 * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+        resonant_fraction=resonant_fraction,
     )
 
     # Er -> Yb transitions
 
-    etu31 = EnergyTransferUpconversion(
+    etu31 = PhononAssistedEnergyTransfer(
         sensitizer_high=Er3,
         sensitizer_low=Er1,
         activator_low=Yb1,
         activator_high=Yb2,
         rate=k_31 * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+        resonant_fraction=resonant_fraction,
     )
 
-    etu52 = EnergyTransferUpconversion(
+    etu52 = PhononAssistedEnergyTransfer(
         sensitizer_high=Er5,
         sensitizer_low=Er2,
         activator_low=Yb1,
         activator_high=Yb2,
         rate=k_52 * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+        resonant_fraction=resonant_fraction,
     )
 
-    etu73 = EnergyTransferUpconversion(
+    etu73 = PhononAssistedEnergyTransfer(
         sensitizer_high=Er7,
         sensitizer_low=Er3,
         activator_low=Yb1,
         activator_high=Yb2,
         rate=k_73 * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+        resonant_fraction=resonant_fraction,
     )
 
-    etu95 = EnergyTransferUpconversion(
+    etu95 = PhononAssistedEnergyTransfer(
         sensitizer_high=Er9,
         sensitizer_low=Er5,
         activator_low=Yb1,
         activator_high=Yb2,
         rate=k_95 * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+        resonant_fraction=resonant_fraction,
     )
 
-    # 6s_6h thermalization, k_therm = knr(0) of Suta 2025 (eq. 6): each rate carries
-    # the degeneracy of its final level, g(4S3/2) = 4 down and g(2H11/2) = 12 up
+    # 6s_6h thermalization
     relaxation = TemperatureDependentInternalRelaxation(
-        T=T,
-        source=Er6h,
-        target=Er6s,
-        rate=4 * k_therm,
-        phonon_wavenumber=phonon_wavenumber,
+        T=T, source=Er6h, target=Er6s, rate=k_therm / 12
     )
 
     excitation = TemperatureDependentInternalExcitation(
-        T=T,
-        source=Er6s,
-        target=Er6h,
-        rate=12 * k_therm,
-        phonon_wavenumber=phonon_wavenumber,
+        T=T, source=Er6s, target=Er6h, rate=k_therm / 4
     )
 
     # Non radiative decays, with their upward partners by detailed balance
@@ -412,8 +461,6 @@ class AndersonModelUnfolded(SpectroscopicSystem):
 
     # Er-Er Cross-Relaxation
 
-    # Phonon-assisted: the mismatch (1600 cm-1 from 6s, 2120 cm-1 from 6h) is emitted
-    # as phonons, so the rate scales as (1 + n)^p from Anderson's value at T0
     cross6h = PhononAssistedEnergyTransfer(
         sensitizer_high=Er6h,
         sensitizer_low=Er3,
@@ -423,6 +470,7 @@ class AndersonModelUnfolded(SpectroscopicSystem):
         T=T,
         T_A=T0,
         phonon_wavenumber=phonon_wavenumber,
+        resonant_fraction=resonant_fraction,
     )
     cross6s = PhononAssistedEnergyTransfer(
         sensitizer_high=Er6s,
@@ -433,20 +481,29 @@ class AndersonModelUnfolded(SpectroscopicSystem):
         T=T,
         T_A=T0,
         phonon_wavenumber=phonon_wavenumber,
+        resonant_fraction=resonant_fraction,
     )
-    cross4 = EnergyTransferUpconversion(
+    cross4 = PhononAssistedEnergyTransfer(
         sensitizer_high=Er4,
         sensitizer_low=Er2,
         activator_low=Er1,
         activator_high=Er2,
         rate=k_cr4 * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+        resonant_fraction=resonant_fraction,
     )
 
     # Er -> Er ETU
-    uc2 = EnergyTransferUpconversion(
+    uc2 = PhononAssistedEnergyTransfer(
         sensitizer_high=Er2,
         sensitizer_low=Er1,
         activator_low=Er2,
         activator_high=Er4,
         rate=k_uc2 * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+        resonant_fraction=resonant_fraction,
     )
