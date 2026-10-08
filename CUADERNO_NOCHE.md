@@ -285,3 +285,52 @@ que no cumple el criterio 3, y a 290 W/cm² (Yu) sigue sin haber máximo a baja 
 Estado: el mecanismo reproduce el orden de magnitud de la caída de τ(4S3/2) (O9: "reproduce lo
 conocido", consecuencia directa de una tasa) y mejora el signo de O4 a baja potencia (sube al enfriar),
 sin máximo robusto. O6 (R/G a alta potencia) y O4 a 290 W/cm² siguen en contra.
+
+## Iteración 3: transferencias Yb ↔ Er asistidas por fonones
+
+### Pregunta
+O6 a alta potencia y O4 a 290 W/cm²: Yu 2014 (bulk 18Yb2Er, 290 W/cm²) ve R/G creciente con T y un
+máximo de todas las bandas cerca de 100 K; Xu 2024 (0,8 W/cm²) ve el rojo superar al verde a 483 K.
+El modelo (iteraciones 1 y 2) da R/G **decreciente** con T a ≥ 10 W/cm², el azul crece ×4–5 al
+enfriar y el verde a 290 W/cm² baja al enfriar por debajo de 360–440 K. Dos grupos, no usado en la
+calibración.
+
+### Fuentes
+- Li 2014 (texto completo): "The energy transfer between donors (Yb3+) and acceptors (Er3+) requires
+  low-energy phonons to match these energy diﬀerences." y desajustes de 40–90 cm⁻¹ entre
+  ²F7/2→²F5/2 (~10260 cm⁻¹) y 4I15/2→4I11/2 (~10300) o 4I11/2→4F7/2 (~10350) (p. 3, Fig. 1b).
+- Langping 2023: "the hindered Yb3+→Er3+ energy transfer (caused by retrogressive phonon activity)"
+  como causa de la baja de intensidad a baja T en su muestra de bajo dopaje (p. 3).
+- Anderson 2013: el ETU 6→9 lleva a Er "into the 4G,2K manifold, above 2H9/2" (p. 37): el estado
+  final del modelo (Er9, 26100 cm⁻¹) es una representación del manifold.
+- Ley: la misma de la iteración 2 (Miyakawa–Dexter, inaccesible; forma de Riseberg–Moos).
+
+### Propuestas
+1. **ETU y retrotransferencias con |ΔE| ≥ ħω asistidas por fonones (elegida).** Con los baricentros
+   del modelo: 5→8: ΔE = 10200 − (24500 − 15000) = +700 cm⁻¹; 6s→9: +2400; 6h→9: +3050; 9→5
+   (retrotransferencia): (26100 − 15000) − 10200 = +900. Todas exotérmicas (emisión de fonones),
+   k(T) = k(T0)·[(1+n(T))/(1+n(T0))]^(ΔE/ħω), ancladas a Anderson. **Parámetros libres: 0.**
+   Interruptor `et_thermal`. Las transferencias casi resonantes (1→3, 3→1: 0; 3→7: −100; 7→3: +100)
+   quedan constantes.
+2. Las transferencias casi resonantes con los desajustes de Li 2014 (−40/−90 cm⁻¹, absorción de un
+   fonón). Descartada: necesita una fracción resonante libre por transferencia para que el ETU no se
+   anule a T → 0, y es la explicación conocida de los autores.
+3. Población térmica de la componente |1⟩ de ²F5/2 del Yb (Suyver 2005, Δ01 = 39 cm⁻¹). Descartada:
+   el número solo está en un abstract (`abstract-only`), no se puede usar como parámetro.
+
+### Pre-registro (antes de implementar y simular)
+Factores a T → 0 con ħω = 359 cm⁻¹: 5→8 ×0,58; 6s→9 ×0,27; 6h→9 ×0,19; 9→5 ×0,61. A 500 K: 5→8
+×1,6; 6s→9 ×5,0; 9→5 ×1,8.
+- Azul: su fuente principal (6→9 →8) cae ×0,27 al enfriar, contra el aumento ×4–5 por k_NR8; espero
+  que el azul a baja T quede cerca del valor de 300 K, quizás con un máximo suave; no sé el signo neto.
+- Rojo (de 9→5): baja al enfriar. R/G: espero que pase a **crecer** con T también a alta potencia
+  (signo de Yu y Xu), magnitud incierta.
+- Verde a 290 W/cm²: al enfriar se drena menos hacia 9, así que espero que suba respecto de la
+  iteración 2 a baja T; no espero un máximo cerca de 100 K simultáneo en verde, rojo y azul (eso
+  sería sorprendente).
+- Sobre 300 K: el drenaje 6→9 crece (×5 a 500 K) y el verde cae más rápido; el rojo cae menos.
+- Pendientes log-log: el verde depende más de la potencia a alta T (más drenaje no lineal), así que
+  su pendiente debería **bajar** algo a alta T respecto de la iteración 2. La del rojo: no sé.
+- τ por excitación directa, FIR en equilibrio: sin cambios (no hay Yb excitado).
+Sorprendente: máximo simultáneo de las tres bandas a 80–200 K a 290 W/cm²; cambio de FIR por encima
+de 300 K.
