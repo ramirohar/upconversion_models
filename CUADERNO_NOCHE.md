@@ -5,10 +5,10 @@ Fuentes y citas textuales: `noche/refs.bib`. Scripts, datos y figuras: `noche/`.
 
 ## Bitácora de reloj
 
-- 02:09 inicio. Fase 0 (instalación, corrida de AndersonModel, línea base, regresión) hasta ~02:50,
-  commit 960a350.
+- 02:09 inicio. Fase 0 (instalación, corrida de AndersonModel, extracción de los PDF) hasta ~02:50.
 - Entre ~02:50 y ~11:30 la máquina entró en reposo (pmset: "Maintenance Sleep" con "DarkWake" cada
-  15 min, a batería); la sesión quedó prácticamente detenida.
+  15 min, a batería); la sesión quedó prácticamente detenida. La línea base y la regresión se
+  terminaron durante esos despertares breves: el commit 960a350 tiene fecha 10:40.
 - 11:36 se reanuda con la máquina despierta; el presupuesto de ~8 h se reinicia desde aquí (cierre ~19:30).
 
 ## Fase 0: base
@@ -49,7 +49,7 @@ observación en función de T se usó para calibrar.
 | # | observable | sistema | condiciones | valor o tendencia | figura/tabla | acceso | calib. |
 |---|---|---|---|---|---|---|---|
 | O1 | FIR = I(2H11/2)/I(4S3/2) contra T | varios (ver O2) | 980 nm cw | crece monótono; ln FIR lineal en 1/T | Yu14 Fig 5c; Zhou13 Fig 3b; Geit17 Fig 3b, 6b; Tong15 Fig 6; Dubey23 Fig 7b; Xu24 Fig 6a | sí | no |
-| O2 | ΔE efectivo de la pendiente de ln FIR | micro 20Yb2Er (Zhou); 20 nm 18Yb2Er (Geit.); micro/nano 20Yb2Er (Tong); 29 nm (Dubey); micro 20Yb2Er (Xu) | 160–300 K (Zhou, 29 mW); 300–900 K (Geit.); 303–573 K (Tong, 2 W/cm²); 300–650 K (Dubey); 353–453 K (Xu, 0,8 W/cm²) | 752; 714 / 716; 713; 816; 817 cm⁻¹, contra 650 ± 10 cm⁻¹ de excitación a 77 K (Suta) | Zhou13 eq. 4; Geit17 Fig 3b, 6b; Tong15 Fig 6a; Dubey23 Fig 7b; Xu24 Fig 6a | sí | no |
+| O2 | ΔE efectivo de la pendiente de ln FIR | micro 20Yb2Er (Zhou); 20 nm 18Yb2Er (Geit.); micro/nano 20Yb2Er (Tong); 29 nm (Dubey); micro 20Yb2Er (Xu) | 160–300 K (Zhou, 29 mW); 300–900 K (Geit.); 303–573 K (Tong, 2 W/cm²); 300–650 K (Dubey); 353–453 K (Xu, 0,8 W/cm²) | 752; 714 (sin recubrir, 300–600 K) / 716 (SiO2, 300–900 K); 713; 816; 817 cm⁻¹, contra 650 ± 10 cm⁻¹ de excitación a 77 K (Suta) | Zhou13 eq. 4; Geit17 Fig 3b, 6b; Tong15 Fig 6a; Dubey23 Fig 7b; Xu24 Fig 6a | sí | no |
 | O3 | prefactor C·g_H/g_S del ajuste de FIR | idem | idem | 8,06 (Zhou); 9,13 (Tong); 5,52 (Suta, con término de offset) | Zhou13 eq. 4; Tong15 Fig 6a | sí | no |
 | O4 | intensidad UC total contra T por debajo de ambiente | bulk y 25/45 nm 18Yb2Er (Yu); core-shell 20 nm 20Yb2Er (Langping) | 290 W/cm² (Yu); 0,1 W/cm² (Langping) | no monótona: máximo ~100 K (bulk) y ~150 K (nano) en Yu; máximo ~160 K, 2,2× el valor de 300 K en Langping; todas las bandas (azul, verde, rojo) en Yu | Yu14 Fig 4; Langping23 Fig 2b,c | sí | no |
 | O4b | ídem, Suyver 2005 (bulk, 5–200 K) | bulk | — | aumento de 5 a 50 K (solo vía cita de Li 2014) | — | inaccesible | no |
@@ -557,7 +557,7 @@ Modelo final: `AndersonThermal` con `thermal` = `cr_thermal` = `et_thermal` = 1 
 | O7b | pendiente del verde +6–16 % entre 30 y 50 °C (Saratov) | no reproduce (−1 % a +2 %) |
 | O8 | pendientes a 300 K, ~2 a baja densidad y bajando | reproduce (física de saturación esperada) |
 | O9 | τ(4S3/2) baja con T | reproduce el orden del cociente (×1,5–2,9 contra ×2,6), valores absolutos ~2× más cortos; consecuencia directa de la CR6 asistida |
-| O10 | decaimiento de la UC del rojo sube al enfriar (Xu) | coincide (573→669 µs contra 497→583 µs) solo con ~1 % de Yb excitado por el pulso; con 10 % se invierte. No decidible con la fuente |
+| O10 | decaimiento de la UC del rojo sube al enfriar (Xu) | coincide (573→669 µs contra 497→583 µs) solo con ~1 % de Yb excitado por el pulso; con 10 % el ajuste monoexponencial de Xu da un cociente < 1, mientras que la pendiente logarítmica da 1,2–1,5 (curvas lejos de una exponencial). No decidible con la fuente |
 | O11 | τ_R con máximo a 30 K (Yu) | no reproduce (monótono) |
 | O12 | azul baja con T | reproduce |
 | O13 | 2H9/2→4I13/2 en la banda verde a alta potencia | reproduce |
@@ -572,7 +572,9 @@ fallaron en el criterio 3:
    213 a 126 µs entre 353 y 453 K (Xu: 226 → 141 µs), sin parámetros libres y con un mecanismo distinto
    del que proponen los autores: la dependencia térmica viene de los niveles que alimentan a los
    emisores (2H9/2 → 4F7/2 para el verde, 4G11/2 para el rojo), no del nivel emisor. Pero con 10 % de
-   Yb excitado el cociente del rojo se invierte, y Xu no informa la energía del pulso.
+   Yb excitado el cociente del rojo cambia mucho (se invierte con el ajuste monoexponencial de Xu y
+   sube a 1,2–1,5 con la pendiente logarítmica: en ningún caso queda en 1,10–1,30), y Xu no informa la
+   energía del pulso.
 2. *Máximo del verde a ~140 K a 0,1 W/cm² (iteración 2, ħω = 300 cm⁻¹).* Sale de la competencia entre
    la CR6 asistida por fonones, que se apaga al enfriar, y el corte del reciclado 9→8→7→6; cerca del
    máximo de Langping (~160 K) pero solo para ħω = 300 cm⁻¹ y de ×1,45 contra ×2,2.
@@ -588,8 +590,10 @@ Direcciones abiertas más prometedoras:
 1. **Decaimiento de la UC contra T a energía de pulso conocida** (o los datos crudos de Xu 2024).
    Predicción del modelo final (`noche/prediction_pulse.py`, `noche/figs/final/prediction_pulse.png`;
    fluencia F ≈ x0·hν/σ con σ_Yb = 1,2e-20 cm² citado por Langping): τ(55 K)/τ(230 K) del rojo
-   = 1,07–1,31 para F ≈ 17–170 mJ/cm² y los tres ħω, y se invierte (< 1) por encima de ~0,3–1 J/cm²
-   (ħω = 300–359; con 450 cm⁻¹ recién a ~1,7 J/cm²); τ(353 K)/τ(453 K) del verde 541 nm sube con F
+   = 1,07–1,31 para F ≈ 17–170 mJ/cm² y los tres ħω, y con el ajuste monoexponencial de Xu se invierte
+   (< 1) por encima de ~0,3–1 J/cm² (ħω = 300–359; con 450 cm⁻¹ recién a ~1,7 J/cm²); esa inversión
+   depende del método de extracción (con la pendiente logarítmica 30 %→5 % no aparece), así que la
+   comparación con un experimento tiene que usar el mismo ajuste; τ(353 K)/τ(453 K) del verde 541 nm sube con F
    (1,2–1,5 a 17 mJ/cm², 1,7–2,6 a 1,7 J/cm²). Los valores absolutos a 230 K bajan de ~1,2 ms a
    ~0,5 ms entre 17 y 300 mJ/cm². Es un test directo y barato del mecanismo de alimentación térmica.
 2. **Estructura Stark de 2H11/2 y 4S3/2** para O2/O3: con las energías de los subniveles (necesitan
@@ -612,3 +616,49 @@ Direcciones abiertas más prometedoras:
 - Muestras: Anderson calibró sobre polvo micrométrico de Lorad; los datos de contraste son de otras
   muestras (micro y nano, con y sin recubrimiento), así que los valores absolutos no son comparables
   y se priorizan tendencias y cocientes.
+
+## Verificación independiente (subagente, 2026-10-08 ~14:15)
+
+Informe del verificador (no modificó el repo; scripts en el scratchpad de la sesión), transcrito:
+
+**(a) Fuentes — OK en lo sustancial, con problemas menores de registro.** Contrastó 25 citas contra el
+texto de los PDF (Anderson Tabla 1 completa y ramificaciones; Suta 650 ± 10, g = 12/4, 5,52 ± 0,21,
+2,29 ± 0,54 µs⁻¹, 450 cm⁻¹, 0,41 ms; Xu: pendientes, decaimientos 497→583, 496→605, 226→141, 817,19,
+800 mW/cm²; Langping 430→166 µs, ~160 K 2,2×, σ = 1,2e-20; Zhou 8,06·exp(−1082,1/T) → 752; Tong
+9,13 y 1025,8 K; Dubey Raman y 816 cm⁻¹ asignado bien a β; Li 2014 10260/10300/10350; Sagaidachnaya
+16 %/6 %, 1,5–9,4 W/cm², 22–55 °C, 80/17/3, 440 nm; Geitenbeek 714/716; Yu 2,9 W/mm², ~100/~150 K,
+n del verde): **todas coinciden**. Supuestos (σ_Yb = 1e-20, densidad 1,38e22, T0 = 300 K, ħω = 359)
+bien declarados; omisión menor: Dubey también dice "the highest phonon energy is 500 cm⁻¹", fuera del
+rango probado. Material abstract-only (Suyver 2005): sin uso indebido (solo en propuestas descartadas;
+O4b vía cita de Li; discutible contarlo como "tercer grupo"). Faltaban en refs.bib: (1) las cifras de
+Li 2014 usadas como desajustes en la iteración 4, con ubicación mal dada ("p. 3"; es la p. 5 del PDF);
+(2) cita de las ramificaciones de Anderson; (3) Xu sec. 2.1 y ec. 1; (4) Anderson "4G,2K manifold";
+(5) Dubey 1,2 W y 29 nm; (6) rango de Geitenbeek en O2 (714 es 300–600 K, sin recubrir); (7) dopaje
+de Tong.
+
+**(b) Orden de commits — OK.** Historia lineal; cada pre-registro precede a su implementación y a sus
+resultados (iter. 1: ed439f1 → 712ef18; 2: 82c3998 → 9a761e7 → 4a68527; 3: 3d1ef4f → d9fbb72 →
+6c427f1; 4: 8f38501 → 992b9ba → b21772d → 21fbefb; 5: 40ce23e → 9d72839). Ningún pre-registro trae
+datos de resultados ni fue editado después. Menores: pre-registro e implementación separados por
+81–112 s (redactados en paralelo con las corridas previas, sin violar la regla; las pruebas previas
+están declaradas); la bitácora ubicaba 960a350 a las ~02:50 pero su fecha es 10:40.
+
+**(c) Ablación y tests — OK, con una salvedad metodológica.** Confirma que no se declara propiedad
+emergente. Re-ejecución (ħω = 359): final x0 = 0,01 rojo 669,2/573,0 µs (×1,168), 541 nm 212,8/126,0
+(×1,688); x0 = 0,1 rojo 188,9/446,3 (×0,423); thermal = 0 cocientes 1,000. Coincide con lo reportado,
+igual que las ablaciones por tasa (norad8 → 1,15; norad9 → 1,33). Salvedad: la inversión del cociente
+del rojo con x0 = 0,1 aparece solo con el ajuste monoexponencial de Xu; con la pendiente logarítmica
+(la otra extracción pre-registrada) el cociente es 1,50/1,53/1,21 (ħω 300/359/450). El veredicto "no
+emergente" se sostiene (fuera de 1,10–1,30), pero las frases "con 10 % se invierte" y la predicción de
+inversión con la fluencia dependen del método de ajuste. Tests: 60 passed.
+
+### Respuesta a la verificación (commit siguiente)
+- refs.bib: agregadas las citas faltantes (Li 2014 quote4–5 con "p. 5 del PDF", Anderson quote6–7, Xu
+  quote8–9, Dubey quote4–5 incluido el "500 cm⁻¹", Tong quote4) y corregido el rango de Geitenbeek
+  (también en la fila O2 del mapa). En los pre-registros de las iteraciones 3 y 4 la ubicación de Li
+  quedó como "p. 3" sin editar, para no tocar texto pre-registrado: la ubicación correcta es la p. 5 del
+  PDF.
+- Bitácora de reloj corregida (960a350 a las 10:40).
+- La dependencia de la "inversión" con el método de extracción quedó escrita en el estado final del
+  mapa (O10), en "Lo más interesante" y en la dirección abierta 1.
+- ħω = 500 cm⁻¹ (Dubey, citando otras fuentes) no se probó; queda anotado como límite del rango.
