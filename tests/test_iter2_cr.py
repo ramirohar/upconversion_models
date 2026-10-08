@@ -24,7 +24,7 @@ SIM = make_sim(M)
 @pytest.mark.parametrize("T", [20.0, 160.0, 300.0, 500.0, 700.0])
 @pytest.mark.parametrize("P", [0.1, 290.0])
 def test_cr_thermal_off_is_iteration1(T, P):
-    r = observables(steady_state(SIM, {M.T: T * u.K, M.energy_flux: P * u.W / u.cm**2, M.cr_thermal: 0}))
+    r = observables(steady_state(SIM, {M.T: T * u.K, M.energy_flux: P * u.W / u.cm**2, M.cr_thermal: 0, M.et_thermal: 0}))
     ref = ITER1["obs"][f"{T}|{P}"]
     for k, v in ref.items():
         assert np.isclose(r[k], v, rtol=1e-6), (k, r[k], v)

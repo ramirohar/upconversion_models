@@ -58,6 +58,9 @@ class AndersonThermal(SpectroscopicSystem):
     # iteración 2: 1 = CR6 phonon-assisted, 0 = CR6 constant at its T0 value
     cr_thermal: Parameter = assign(default=1)
     T_cr = T0 + cr_thermal * (T_eff - T0)
+    # iteración 3: 1 = Yb<->Er transfers with |ΔE| >= ħω phonon-assisted, 0 = constant
+    et_thermal: Parameter = assign(default=1)
+    T_et = T0 + et_thermal * (T_eff - T0)
 
     # Effective phonon energy for multiphonon relaxation: highest lattice Raman mode
     # of β-NaYF4 (Dubey 2023: 253, 307, 359 cm-1; Suta 2025 cutoff 450 cm-1)
@@ -139,6 +142,9 @@ class AndersonThermal(SpectroscopicSystem):
     norad = InternalConversion(low=Yb1, high=Yb2, rate=yb_nr)
 
     # ---- Yb -> Er ETU ----
+    # iteración 3: 5->8 (+700 cm-1), 6s->9 (+2400), 6h->9 (+3050) and the 9->5 back
+    # transfer (+900) release the mismatch as phonons (PhononAssistedEnergyTransfer,
+    # anchored at Anderson's rates at T0); near-resonant 1<->3 and 3<->7 stay constant.
     etu13 = EnergyTransferUpconversion(
         sensitizer_high=Yb2, sensitizer_low=Yb1, activator_low=Er1, activator_high=Er3,
         rate=k_13 * site_density,
@@ -151,17 +157,17 @@ class AndersonThermal(SpectroscopicSystem):
         sensitizer_high=Yb2, sensitizer_low=Yb1, activator_low=Er3, activator_high=Er7,
         rate=k_37 * site_density,
     )
-    etu58 = EnergyTransferUpconversion(
+    etu58 = PhononAssistedEnergyTransfer(
         sensitizer_high=Yb2, sensitizer_low=Yb1, activator_low=Er5, activator_high=Er8,
-        rate=k_58 * site_density,
+        rate=k_58 * site_density, T=T_et, T_A=T0, phonon_wavenumber=phonon_wavenumber,
     )
-    etu6s9 = EnergyTransferUpconversion(
+    etu6s9 = PhononAssistedEnergyTransfer(
         sensitizer_high=Yb2, sensitizer_low=Yb1, activator_low=Er6s, activator_high=Er9,
-        rate=k_69 * site_density,
+        rate=k_69 * site_density, T=T_et, T_A=T0, phonon_wavenumber=phonon_wavenumber,
     )
-    etu6h9 = EnergyTransferUpconversion(
+    etu6h9 = PhononAssistedEnergyTransfer(
         sensitizer_high=Yb2, sensitizer_low=Yb1, activator_low=Er6h, activator_high=Er9,
-        rate=k_69 * site_density,
+        rate=k_69 * site_density, T=T_et, T_A=T0, phonon_wavenumber=phonon_wavenumber,
     )
 
     # ---- Er -> Yb back transfer ----
@@ -177,9 +183,9 @@ class AndersonThermal(SpectroscopicSystem):
         sensitizer_high=Er7, sensitizer_low=Er3, activator_low=Yb1, activator_high=Yb2,
         rate=k_73 * site_density,
     )
-    etu95 = EnergyTransferUpconversion(
+    etu95 = PhononAssistedEnergyTransfer(
         sensitizer_high=Er9, sensitizer_low=Er5, activator_low=Yb1, activator_high=Yb2,
-        rate=k_95 * site_density,
+        rate=k_95 * site_density, T=T_et, T_A=T0, phonon_wavenumber=phonon_wavenumber,
     )
 
     # ---- 2H11/2 <-> 4S3/2 thermalization (Suta 2025, eq. 6) ----
