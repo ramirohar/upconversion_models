@@ -367,3 +367,52 @@ Contra el pre-registro:
 
 Estado: O6 reproducido en signo (esperado). O4 sigue en contra (sin máximo a 100–160 K). O7 (rojo)
 en contra.
+
+## Iteración 4: transferencias Yb ↔ Er casi resonantes que absorben un fonón
+
+### Pregunta
+O4: Yu 2014 (290 W/cm²) y Langping 2023 (0,1 W/cm²) ven un máximo de la intensidad UC a 100–160 K
+(dos grupos con texto completo, un tercero, Suyver 2005, por cita). Después de las iteraciones 2 y 3
+el modelo sube monótonamente al enfriar en verde y azul: le falta algo que se congele a baja T.
+
+### Fuentes
+- Li 2014 (texto completo, p. 3, Fig. 1b): "there are slight energy diﬀerences (40 −90 cm −1) between
+  the 2F7/2 → 2F5/2 transition ( ∼10260 cm −1) of Yb 3+ ions and the 4I15/2 → 4I11/2 (∼10 300 cm −1) or
+  4I11/2 → 4F7/2 (∼10 350 cm−1) transition of Er 3+ ions." y "The energy transfer between donors
+  (Yb3+) and acceptors (Er3+) requires low-energy phonons to match these energy diﬀerences."
+  → 1→3: ΔE = 10260 − 10300 = −40 cm⁻¹; 3→7: 10260 − 10350 = −90 cm⁻¹ (absorción de un fonón de
+  esa energía); las inversas 3→1 (+40) y 7→3 (+90) emiten un fonón.
+- Langping 2023: "the hindered Yb3+→Er3+ energy transfer (caused by retrogressive phonon activity)".
+- Yu 2014 atribuye el máximo a la componente |1⟩ del ²F5/2 (Suyver): misma física de activación de
+  la transferencia Yb→Er, con un número (39 cm⁻¹) que solo está en un abstract.
+
+### Propuestas
+1. **1↔3 y 3↔7 asistidas por un fonón con los desajustes de Li 2014 (elegida).** Absorción:
+   k(T) = k(T0)·[r + (1 − r)·n(ε,T)/n(ε,T0)], ε = |ΔE|; emisión: k(T) = k(T0)·[1 + n(ε,T)]/[1 + n(ε,T0)].
+   Bloque `PhononAssistedEnergyTransfer` (rama de un fonón) con el desajuste dado. **Un parámetro
+   libre:** la fracción resonante r (compartida por 1→3 y 3→7), que representa transferencias
+   resonantes entre componentes Stark o por ensanchamiento inhomogéneo; sin valor de literatura.
+   Interruptor `nr_thermal` (0 = constantes, iteración 3).
+2. Componente |1⟩ del ²F5/2 del Yb (Suyver 2005). Descartada: Δ01 solo en un abstract.
+3. Sin fracción resonante (r = 0, cero parámetros libres). Descartada como modelo, pero se corre
+   como caso límite: predice que la UC se anula a T → 0, y los datos (Langping: "varies little" de
+   300 a 40 K) lo contradicen de entrada.
+
+No ajusto r: barro r = 0,1, 0,3 y 0,6 con ħω = 359 cm⁻¹ y reporto los tres.
+
+### Pre-registro (antes de implementar y simular)
+- Por debajo de ~60 K (ε = 40 cm⁻¹) y ~130 K (90 cm⁻¹) los ETU 1→3 y 3→7 tienden a r·k(T0); las
+  retrotransferencias 3→1 y 7→3 bajan a 0,17 y 0,35 de su valor a 300 K.
+- A baja potencia el verde, el rojo y el azul pasan por un **máximo** a T intermedia porque el
+  factor r + (1−r)·n/n0 de los dos ETU se multiplica contra la ganancia ×1,2–1,6 de las iteraciones
+  2–3. Espero que el máximo se corra a T más bajas al subir r: con r = 0,1 cerca de 250–300 K, con
+  r = 0,6 por debajo de 150 K. A 290 W/cm² (saturado) el efecto es más chico y el máximo, si aparece,
+  a T más baja que a baja potencia.
+- Sobre 300 K los ETU 1→3 y 3→7 crecen casi lineal con T (×~1,6 a 483 K en la parte no resonante):
+  la caída térmica del verde se frena y las pendientes log-log bajan a alta T (más saturación), al
+  revés que en Xu.
+- R/G sigue creciendo con T. τ por excitación directa y FIR en equilibrio: sin cambios.
+- Si aparece un máximo simultáneo de las tres bandas a 100–160 K, es la explicación que dan los
+  propios autores (transferencia Yb→Er impedida a baja T): **reproduce lo conocido**, no emergente.
+Sorprendente: que la posición del máximo no dependa de r; que R/G se vuelva no monótono; que las
+pendientes suban a alta T.
