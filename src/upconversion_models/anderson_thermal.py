@@ -31,6 +31,7 @@ from symbolite.abstract import real
 from .anderson import photon_energy
 from .transitions import (
     EnergyTransferUpconversion,
+    PhononAssistedEnergyTransfer,
     TemperatureDependentInternalConversionRef,
     TemperatureDependentInternalExcitation,
     TemperatureDependentInternalRelaxation,
@@ -54,6 +55,9 @@ class AndersonThermal(SpectroscopicSystem):
     # 0: no upward partners (Anderson's equations, used for the reduction tests)
     detailed_balance: Parameter = assign(default=1)
     T_eff = T0 + thermal * (T - T0)
+    # iteración 2: 1 = CR6 phonon-assisted, 0 = CR6 constant at its T0 value
+    cr_thermal: Parameter = assign(default=1)
+    T_cr = T0 + cr_thermal * (T_eff - T0)
 
     # Effective phonon energy for multiphonon relaxation: highest lattice Raman mode
     # of β-NaYF4 (Dubey 2023: 253, 307, 359 cm-1; Suta 2025 cutoff 450 cm-1)
@@ -258,15 +262,19 @@ class AndersonThermal(SpectroscopicSystem):
     rad32 = Fluorescence(excited=Er3, ground=Er2, rate=0.19 * k_r3)
     rad2 = Fluorescence(excited=Er2, ground=Er1, rate=k_r2)  # 1.5 um
 
-    # ---- Er-Er cross relaxation and ETU (constant, as in Anderson) ----
-    cross6s = EnergyTransferUpconversion(
+    # ---- Er-Er cross relaxation CR6, phonon-assisted (iteración 2) ----
+    # 4S3/2 + 4I15/2 -> 4I11/2 + 4I13/2 releases 1600 cm-1 (2250 from 2H11/2) as phonons:
+    # k(T) = k_CR6(T0)·[(1 + n(T))/(1 + n(T0))]^(ΔE/ħω). cr_thermal = 0 keeps it at T0.
+    cross6s = PhononAssistedEnergyTransfer(
         sensitizer_high=Er6s, sensitizer_low=Er3, activator_low=Er1, activator_high=Er2,
-        rate=k_cr6 * site_density,
+        rate=k_cr6 * site_density, T=T_cr, T_A=T0, phonon_wavenumber=phonon_wavenumber,
     )
-    cross6h = EnergyTransferUpconversion(
+    cross6h = PhononAssistedEnergyTransfer(
         sensitizer_high=Er6h, sensitizer_low=Er3, activator_low=Er1, activator_high=Er2,
-        rate=k_cr6 * site_density,
+        rate=k_cr6 * site_density, T=T_cr, T_A=T0, phonon_wavenumber=phonon_wavenumber,
     )
+
+    # ---- Er-Er cross relaxation and ETU (constant, as in Anderson) ----
     cross4 = EnergyTransferUpconversion(
         sensitizer_high=Er4, sensitizer_low=Er2, activator_low=Er1, activator_high=Er2,
         rate=k_cr4 * site_density,

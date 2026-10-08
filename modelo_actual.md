@@ -57,7 +57,10 @@ solo para los gaps de las tasas multifonónicas y para las energías de las lín
   k↑ = k(T0)·(g_alto/g_bajo)·[n(T)/(1+n(T0))]^(gap/ħω).
 - Radiativas de 8, 6h, 6s, 5, 3, 2 con las ramificaciones de Anderson; k_r6s y k_r6h con
   f_S(T0)·k_r6s + f_H(T0)·k_r6h = k_R6 y k_r6h = 1,84·k_r6s.
-- Relajación cruzada 6s,6h + 1 → 3 + 2 (k_CR6), 4 + 1 → 2 + 2 (k_CR4); ETU Er–Er 2 + 2 → 4 + 1 (k_UC2).
+- Relajación cruzada 6s,6h + 1 → 3 + 2 (k_CR6) **asistida por fonones** (iteración 2): desajuste
+  1600 cm⁻¹ (6s) y 2250 cm⁻¹ (6h) emitido como fonones, k(T) = k_CR6(T0)·[(1+n(T))/(1+n(T0))]^(ΔE/ħω)
+  (Langping 2023 para el mecanismo; la ley es la misma de las multifonónicas).
+- 4 + 1 → 2 + 2 (k_CR4) y ETU Er–Er 2 + 2 → 4 + 1 (k_UC2), constantes.
 
 ## Interruptores
 
@@ -66,3 +69,4 @@ solo para los gaps de las tasas multifonónicas y para las energías de las lín
 | `thermal` | evalúa todas las tasas dependientes de T a T0 | 0 |
 | `detailed_balance` | compañeros ascendentes de las multifonónicas | 0 |
 | `k_nr0` | acople 6h ↔ 6s | (grande = termalización instantánea) |
+| `cr_thermal` | CR6 asistida por fonones (iteración 2) | 0 |
