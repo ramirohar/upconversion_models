@@ -129,3 +129,67 @@ P = 0,1, 0,8, 2, 10, 100 y 290 W/cm².
 
 Sorpresas posibles: un máximo de la intensidad verde contra T a alguna potencia; rojo/verde creciente
 con T; ΔE_eff de FIR_pure lejos de 650 cm⁻¹ por encima de 300 K.
+
+### Resultados (barrido `noche/data/iter1_sweep.json`, 217 s; figuras `noche/figs/iter1/`)
+Generados con `pixi run python noche/iter1_run.py` y `pixi run python noche/report.py data/iter1_sweep.json figs/iter1`.
+
+**A T0 el modelo por defecto se aparta de Anderson** en ≤ 0,24 % en el verde, ≤ 2 % en el rojo y
+≤ 0,75 % en el azul (0,1–1000 W/cm²); sin compañeros ascendentes, ≤ 0,24 % (`noche/iter1_t0_check.py`).
+
+ΔE efectivo (cm⁻¹) de la pendiente de ln FIR, FIR_pure / FIR_band:
+
+| P (W/cm²) | 160–300 K | 303–573 K | 353–453 K | 300–700 K |
+|---|---|---|---|---|
+| 0,1 | 630 / 631 | 649 / 649 | 648 / 649 | 649 / 649 |
+| 0,8 | 629 / 637 | 648 / 654 | 648 / 654 | 649 / 653 |
+| 2 | 627 / 646 | 648 / 660 | 648 / 661 | 648 / 658 |
+| 10 | 619 / 682 | 648 / 685 | 648 / 690 | 648 / 681 |
+| 100 | 591 / 764 | 646 / 776 | 645 / 792 | 646 / 759 |
+| 290 | 566 / 794 | 644 / 849 | 643 / 876 | 644 / 822 |
+
+Prefactor de FIR_pure (300–700 K): 5,45–5,50 (es el dato de entrada de Suta).
+
+Intensidades (T del máximo en K: verde / rojo / azul; verde(10 K)/verde(300 K)):
+0,1 W/cm²: 320 / 500 / 10; 0,72. 0,8: 340 / 10 / 10; 0,73. 10: 420 / 10 / 10; 0,69.
+290: 540 / 180 / 10; 0,56.
+
+Rojo/verde a 100 / 300 / 500 K: 0,1 W/cm²: 0,050 / 0,045 / 0,214; 0,8: 0,312 / 0,175 / 0,238;
+10: 1,40 / 0,71 / 0,37; 290: 2,65 / 1,37 / 0,55.
+
+Pendientes log-log a 0,8 W/cm² (541 / 520 / rojo): 300 K 1,75 / 1,75 / 2,46; 480 K 1,89 / 1,89 / 2,05.
+
+τ(4S3/2) por excitación directa: 115 µs de 40 a 220 K, 112 µs a 300 K, 108 µs a 360 K, 87 µs a 440 K.
+τ(4F9/2) = 490 µs a toda T. El τ verde corto no es un error: k_CR6·densidad·n(Er1) =
+2,79e-17 × 1,38e22 × 0,019 ≈ 7300 s⁻¹ domina sobre k_R6 = 1510 s⁻¹ (en el pre-registro supuse que
+CR6 era despreciable; me equivoqué en la cuenta).
+
+### Evaluación contra el mapa
+
+| fila | resultado del modelo | estado |
+|---|---|---|
+| O1 | FIR crece con T; meseta por debajo de ~170 K (T_on, sube con P: resultado conocido, no cuenta) | reproduce |
+| O2 | FIR_pure: 643–649 cm⁻¹ en ventanas ≥ 300 K → **no** da 713–817. FIR_band llega a 760–876 solo a 100–290 W/cm²; a las potencias publicadas (0,8–2 W/cm²) da 654–661 | contradice (lo de FIR_band estaba pre-registrado y no alcanza a las potencias reales) |
+| O3 | prefactor 5,5 contra 8,06 (Zhou) y 9,13 (Tong) | contradice (es la entrada de Suta) |
+| O4 | verde **baja** al enfriar por debajo de 320–540 K (0,56–0,73 a 10 K); azul sube ×4–5; rojo con meseta o máximo muy chato (ver abajo). Langping ve 2,2× a 160 K respecto de 300 K a 0,1 W/cm²; el modelo da 0,85× | contradice; además el signo del verde al enfriar contradice mi pre-registro |
+| O5 | verde baja sobre 300 K a P ≤ 2 W/cm²; a ≥ 100 W/cm² sube hasta ~500 K | reproduce a baja potencia |
+| O6 | rojo/verde sube con T sobre 300 K a P ≤ 0,8 W/cm² (no pre-registrado: dije que bajaba) y baja con T a P ≥ 10 W/cm². Xu (0,8 W/cm²) ve el rojo pasar a ser el pico más alto a 483 K; el modelo da R/G 0,175 → 0,238, lejos de ese orden. Yu (290 W/cm²) ve R/G creciente: el modelo da el signo opuesto | signo correcto a baja P, magnitud no; contradice a alta P |
+| O7 | pendientes del verde suben con T (+0,14 entre 300 y 480 K contra +0,29/+0,51 en Xu); la del rojo baja (2,46 → 2,05) contra +0,39 en Xu; el modelo da pendientes iguales para 520 y 541 nm y Xu no (1,53 contra 1,22 a 303 K, señal de calentamiento por el láser, O14) | signo del verde sí; rojo contradice |
+| O9 | τ verde casi constante hasta 300 K (115 µs) contra 430 → 166 µs (Langping) y 410 µs a 77 K (Suta, no contraste); 353 → 453 K: −21 % contra −38 % (Xu) | contradice |
+| O10 | τ rojo constante (490 µs; coincide con 497 µs de Xu a 230 K) sin el aumento a 583–605 µs a 55 K | contradice la tendencia |
+| O12 | azul baja con T | reproduce |
+
+**Máximo del rojo a alta potencia (no pre-registrado).** A 290 W/cm² (la potencia de Yu 2014) el rojo
+tiene un máximo a 180 K. Prueba de robustez (`noche/iter1_redmax.py`): con ħω = 300 cm⁻¹ el máximo
+está en 200–220 K, con 359 cm⁻¹ en 120–180 K y con 450 cm⁻¹ desaparece; la caída por debajo del
+máximo es de 0–11 %. En la misma figura de Yu el verde y el azul también tienen máximo, y el modelo
+no los da (verde máximo a 500 K, azul monótono). No cumple el criterio 3 (no se sostiene en el rango
+de ħω) y reproducirlo solo en un canal sería elegir a mano: **no es emergente**.
+
+**Mecanismo del verde que baja al enfriar.** A temperatura ambiente parte de la población que el ETU
+6→9 saca del par verde vuelve por 9→8→7→6 (k_NR8 = 43450 s⁻¹ frente a k_R8 = 2330 s⁻¹). Al enfriar,
+k_NR8 cae ~9× (gap de 4000 cm⁻¹, p = 11) y 2H9/2 pasa a emitir en azul y en 2H9/2→4I13/2: el
+reciclado se corta y el verde pierde. Es una consecuencia directa del k_NR8 de Anderson con la ley
+del gap; no reproduce ningún dato.
+
+Estado de la iteración 1: completada. El modelo reproduce O1, O5 (baja P) y O12, y contradice O2,
+O3, O4, O6 (alta P), O7 (rojo), O9 y O10.
