@@ -251,3 +251,37 @@ Cuentas a mano con ħω = 359 cm⁻¹ (n(300 K) = 0,218):
 - Azul: sigue bajando con T. FIR (O1–O3) y τ rojo (O10): sin cambios.
 - Pendientes log-log: sin cambio apreciable (la CR6 es lineal en la población del verde).
 Sorprendente: un cambio en FIR o en τ rojo; un máximo del verde muy marcado (> 3×).
+
+### Resultados
+Implementación: commit 9a761e7 (después del pre-registro 82c3998). Test de reducción
+`tests/test_iter2_cr.py`: con `cr_thermal` = 0 se recupera el barrido de la iteración 1 a rtol 1e-6
+(5 temperaturas × 2 potencias) y los desajustes salen de los niveles (1600 y 2250 cm⁻¹). 32 tests pasan.
+Barridos: `noche/iter2_run.py` (ħω = 359, 300 y 450 cm⁻¹, con y sin CR asistida; ~5,4 min cada uno).
+Tabla completa: `noche/data/compare_iter2.txt` (`noche/compare.py`). Figuras: `noche/figs/iter2/`.
+
+| métrica | iter. 1 (359) | iter. 2 (359) | iter. 2 (300) | iter. 2 (450) | literatura |
+|---|---|---|---|---|---|
+| τ verde 40 K / 300 K | 1,02 | 2,01 | 2,87 | 1,46 | 2,59 (Langping) |
+| τ verde 353 K / 453 K | 1,32 | 1,98 | 2,47 | 1,61 | 1,60 (Xu) |
+| τ verde 40 K (µs) | 115 | 226 | 322 | 164 | 430 (Langping) |
+| visible 160 K / 300 K a 0,1 W/cm² | 0,79 | 1,35 | 1,47 | 1,18 | 2,2 (Langping, máximo ~160 K) |
+| T del máximo del verde a 0,1 W/cm² (K) | 320 | 10 | 140 | 10 | ~160 (Langping) |
+| T del máximo del verde a 290 W/cm² (K) | 540 | 380 | 360 | 440 | ~100–150 (Yu) |
+| verde 10 K / 300 K a 290 W/cm² | 0,57 | 0,61 | 0,42 | 0,80 | > 1 (Yu: máximo ~100 K) |
+| R/G 483 K / 303 K a 0,8 W/cm² | 1,21 | 1,21 | 2,32 | 0,88 | > 1 (Xu) |
+| R/G 400 K / 10 K a 290 W/cm² | 0,32 | 0,32 | 0,20 | 0,51 | > 1 (Yu) |
+
+Contra el pre-registro: el cociente de τ (2,0) y la subida del verde al enfriar a baja potencia (1,3–1,4)
+salieron como estaban escritos; τ entre 353 y 453 K cae más de lo previsto (1,98 contra 1,6). R/G,
+pendientes, FIR y τ rojo no cambian, como se esperaba.
+
+**Máximo del verde a ~140 K con ħω = 300 cm⁻¹.** Con ħω = 300 cm⁻¹ (el modo Raman de 307 cm⁻¹ de
+Dubey) aparece un máximo del verde a 140 K (0,1 W/cm²) y 160 K (0,8 W/cm²), con máx/300 K = 1,45, y del
+visible a 120 K: cerca del máximo de Langping (~160 K, 2,2×). Con 359 y 450 cm⁻¹ no hay máximo (verde
+monótono hasta 10 K). Sale de la competencia entre la CR6 que se apaga al enfriar y el reciclado
+9→8→7→6 que también se corta (iteración 1), pero depende de ħω dentro del rango de literatura, así
+que no cumple el criterio 3, y a 290 W/cm² (Yu) sigue sin haber máximo a baja T. **No es emergente.**
+
+Estado: el mecanismo reproduce el orden de magnitud de la caída de τ(4S3/2) (O9: "reproduce lo
+conocido", consecuencia directa de una tasa) y mejora el signo de O4 a baja potencia (sube al enfriar),
+sin máximo robusto. O6 (R/G a alta potencia) y O4 a 290 W/cm² siguen en contra.
