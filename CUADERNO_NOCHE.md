@@ -461,3 +461,38 @@ rtol 1e-6; desajustes de Li 2014 verificados. 60 tests pasan. Barridos `noche/it
 Estado de la iteración 4: **mal condicionada** (el resultado depende del parámetro libre r y la
 formulación de la fracción resonante es asimétrica). Se deja en el código con `nr_thermal` y se
 **apaga por defecto** en el modelo final (`nr_thermal` = 0).
+
+## Iteración 5: O10 y O9 con el observable correcto (decaimiento de la UC tras pulso de 980 nm)
+
+### Pregunta
+Al calcular τ_D para la adenda de la iteración 4 noté que **comparé mal O10 y la parte de Xu de O9
+en la iteración 1**: Xu 2024 midió los decaimientos con láser de 980 nm ("The spectrum and lifetime of
+the system were recorded using a transient fluorescence spectrometer (FLS-980) and 980 nm laser",
+sec. 2.1) y ajustó una exponencial y = y0 + A·e^(−t/τ) (eq. 1, Fig. 5): es el decaimiento de la
+**UC**, que incluye la alimentación desde niveles intermedios, no la vida media del nivel emisor
+que usé (excitación directa, 490 µs constante para 4F9/2). No hay mecanismo nuevo: es una
+re-evaluación del modelo actual (iteración 3; `nr_thermal` = 0 por defecto desde 21fbefb+).
+
+Lo que ya vi antes de este pre-registro (`noche/data/iter4_dynamics.json`, ħω = 359, τ_D por la
+pendiente logarítmica entre 30 % y 5 % del máximo): con la configuración de la iteración 3 el τ_D del
+rojo es ~511 µs a 230 K y 595 µs a 55 K con 1 % de Yb excitado (~460 y 553 µs con 10 %); Xu: 497 →
+583 µs (653 nm) y 496 → 605 µs (661 nm). Lo declaro: el número a 359 cm⁻¹ no es una predicción ciega.
+
+### Pre-registro del protocolo de evaluación (antes de correrlo)
+Script `noche/iter5_decays.py` (se escribe después de este commit). Configuraciones:
+iteración 1 (`cr_thermal` = `et_thermal` = 0), iteración 2 (`et_thermal` = 0), iteración 3 (modelo
+final), ablación total (`thermal` = 0) y ablaciones por tasa (la T de un solo bloque multifonónico
+fijada en T0: norad3, norad4, norad8, norad9). ħω ∈ {300, 359, 450} cm⁻¹; fracción de Yb excitada
+x0 ∈ {0,003, 0,01, 0,1}; dos extracciones de τ: pendiente logarítmica 30 %→5 % y ajuste
+y0 + A·e^(−t/τ) desde el máximo hasta 5 % (la forma de Xu). Temperaturas: 55 y 230 K (rojo, 653 =
+rad51) y 353 y 453 K (verde 541 = rad6s1 y 520 = rad6h1).
+
+Criterio fijado ahora para declarar emergente el τ_D(T) del rojo:
+(i) en el modelo final, τ_D(55 K)/τ_D(230 K) del rojo entre 1,10 y 1,30 (Xu: 1,17 y 1,22) y τ_D(230 K)
+dentro de ±20 % de 497 µs, para **todo** ħω ∈ {300, 359, 450} y x0 ∈ {0,003, 0,01, 0,1} y con las dos
+extracciones; (ii) con `thermal` = 0 el cociente cae a ≤ 1,03; (iii) que no lo fije una sola tasa
+puesta a mano (la ablación por tasa dice qué bloques importan; si basta una sola tasa multifonónica
+y su efecto es directo sobre el nivel emisor, no cuenta; si viene de niveles alimentadores, sí).
+Expectativa honesta: el cociente se mantiene en 1,1–1,3 para ħω 300–450 y x0 ≤ 0,01; con x0 = 0,1
+el valor absoluto baja (~460 µs) y puede salir del ±20 %. El verde 541 entre 353 y 453 K: espero un
+cociente ~1,3–1,6 (Xu: 1,60) con valores absolutos ~1,5× mayores que los de Xu.

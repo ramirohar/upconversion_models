@@ -63,7 +63,7 @@ class AndersonThermal(SpectroscopicSystem):
     T_et = T0 + et_thermal * (T_eff - T0)
     # iteración 4: 1 = near-resonant 1<->3 and 3<->7 transfers absorb/emit one phonon of
     # the Li 2014 mismatch (40, 90 cm-1), 0 = constant. r_res: resonant fraction (free).
-    nr_thermal: Parameter = assign(default=1)
+    nr_thermal: Parameter = assign(default=0)  # iteración 4 mal condicionada: apagada
     T_nr = T0 + nr_thermal * (T_eff - T0)
     r_res: Parameter = assign(default=0.3)
 
