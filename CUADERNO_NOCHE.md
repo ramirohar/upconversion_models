@@ -532,3 +532,79 @@ decidiría si el mecanismo "alimentación térmica desde 2H9/2 y 4G11/2" es el c
 Corrección del mapa: la fila O10 (y la parte de Xu de O9) debe compararse con el decaimiento de la UC,
 no con la vida media por excitación directa; el veredicto de la iteración 1 ("contradice") se reemplaza
 por "depende de la energía del pulso, no decidible con la fuente".
+
+## Chequeo posterior de la iteración 3 (robustez del signo de R/G)
+`noche/iter3_mismatch_check.py` (post hoc). El estado final del ETU 6→9 (Er9, 26100 cm⁻¹) representa
+el manifold 4G,2K; con un estado final más alto el desajuste baja. Con desajustes de 1000/1650 cm⁻¹ en
+lugar de 2400/3050: a 0,8 W/cm² R/G sigue creciendo con T (400 K/10 K = 1,55; 483 K/303 K = 1,78), pero
+a 290 W/cm² **vuelve a bajar** (0,83 y 0,99). El signo correcto a alta potencia (Yu) depende del
+estado final supuesto para el ETU desde el par verde; a baja potencia (Xu) es robusto.
+
+## Estado final del mapa
+
+Modelo final: `AndersonThermal` con `thermal` = `cr_thermal` = `et_thermal` = 1 y `nr_thermal` = 0
+(iteraciones 1–3; la 4 queda apagada). Figuras clave en `noche/figs/final/` (`noche/figs_final.py`).
+
+| fila | observable | estado con el modelo final |
+|---|---|---|
+| O1 | FIR crece con T, Boltzmann sobre ~170 K | reproduce (meseta a baja T = T_on conocido) |
+| O2 | ΔE efectivo 713–817 cm⁻¹ (5 grupos) | **no reproduce**: 647–649 cm⁻¹ con FIR puro; la contaminación por 2H9/2→4I13/2 solo lo sube a 700–800 a 50–290 W/cm², no a las potencias publicadas (fig. `delta_e.png`) |
+| O3 | prefactor 8–9 | no reproduce (5,5, entrada de Suta) |
+| O4 | máximo de intensidad a 100–160 K | no reproduce (verde y azul crecen al enfriar; iteración 4 lo da solo con un parámetro libre y una formulación defectuosa) |
+| O5 | apagado térmico sobre ambiente | reproduce a baja potencia |
+| O6 | R/G crece con T | reproduce el signo (pre-registrado); a alta potencia depende del estado final del ETU 6→9 |
+| O7 | pendientes log-log crecen con T (Xu) | verde: signo sí, magnitud no (+0,1 contra +0,3/+0,5); rojo: no. Xu da n(520) ≠ n(541) a la misma T, imposible con termalización rápida sin calentamiento por el láser |
+| O7b | pendiente del verde +6–16 % entre 30 y 50 °C (Saratov) | no reproduce (−1 % a +2 %) |
+| O8 | pendientes a 300 K, ~2 a baja densidad y bajando | reproduce (física de saturación esperada) |
+| O9 | τ(4S3/2) baja con T | reproduce el orden del cociente (×1,5–2,9 contra ×2,6), valores absolutos ~2× más cortos; consecuencia directa de la CR6 asistida |
+| O10 | decaimiento de la UC del rojo sube al enfriar (Xu) | coincide (573→669 µs contra 497→583 µs) solo con ~1 % de Yb excitado por el pulso; con 10 % se invierte. No decidible con la fuente |
+| O11 | τ_R con máximo a 30 K (Yu) | no reproduce (monótono) |
+| O12 | azul baja con T | reproduce |
+| O13 | 2H9/2→4I13/2 en la banda verde a alta potencia | reproduce |
+| O14 | calentamiento por láser | fuera del modelo |
+
+## Lo más interesante
+
+**No apareció una propiedad emergente** que cumpla los cuatro criterios. Los dos candidatos más cerca
+fallaron en el criterio 3:
+1. *Decaimiento de la UC contra T (iteración 5).* Con el modelo final y ~1 % de Yb excitado, el
+   decaimiento del rojo pasa de 573 a 669 µs entre 230 y 55 K (Xu: 497 → 583 µs) y el del verde 541 nm de
+   213 a 126 µs entre 353 y 453 K (Xu: 226 → 141 µs), sin parámetros libres y con un mecanismo distinto
+   del que proponen los autores: la dependencia térmica viene de los niveles que alimentan a los
+   emisores (2H9/2 → 4F7/2 para el verde, 4G11/2 para el rojo), no del nivel emisor. Pero con 10 % de
+   Yb excitado el cociente del rojo se invierte, y Xu no informa la energía del pulso.
+2. *Máximo del verde a ~140 K a 0,1 W/cm² (iteración 2, ħω = 300 cm⁻¹).* Sale de la competencia entre
+   la CR6 asistida por fonones, que se apaga al enfriar, y el corte del reciclado 9→8→7→6; cerca del
+   máximo de Langping (~160 K) pero solo para ħω = 300 cm⁻¹ y de ×1,45 contra ×2,2.
+
+Lo que el modelo sí muestra con firmeza: (a) en el esquema de Anderson el par verde recupera, a
+temperatura ambiente, parte de lo que el ETU 6→9 le saca (9→8→7→6), y ese reciclado se corta al
+enfriar porque k_NR8 cae ~9×: el azul crece al enfriar y el verde pierde esa vía; (b) el signo de
+R/G(T) depende de que los ETU desde el par verde y la retrotransferencia 9→5 estén asistidos por
+fonones; (c) O2 (ΔE efectivo 713–817 cm⁻¹ en cinco grupos) no se explica con ecuaciones de tasa y
+A constantes: la termalización rápida fija el FIR en Boltzmann con el gap de entrada.
+
+Direcciones abiertas más prometedoras:
+1. **Decaimiento de la UC contra T a energía de pulso conocida** (o los datos crudos de Xu 2024): el
+   modelo predice que el cociente τ(55 K)/τ(230 K) del rojo pasa de ~1,2 a < 1 al subir la fracción de
+   Yb excitada de 1 % a 10 %; es un test directo y barato del mecanismo de alimentación térmica.
+2. **Estructura Stark de 2H11/2 y 4S3/2** para O2/O3: con las energías de los subniveles (necesitan
+   una fuente accesible) el FIR integrado tendría un ΔE efectivo dependiente de T; es lo único dentro
+   del marco de ecuaciones de tasa que puede subir la pendiente por encima de 650 cm⁻¹ a baja potencia.
+3. **Calentamiento por el láser** como parte del modelo: Xu da n(520) − n(541) = 0,31 a 303 K, que con
+   termalización rápida implica ~30 K de calentamiento por unidad de ln P; eso contamina O7 y O7b y
+   debería modelarse antes de usar pendientes contra T como dato de contraste.
+
+## Pasos salteados, fallas y limitaciones
+- La sesión estuvo detenida ~8,5 h (02:50–11:30) por reposo de la máquina; el presupuesto se
+  reinició a las 11:36.
+- Inaccesibles (Unpaywall is_oa = False): Suyver 2005 y 2006, Renero-Lecuna 2011, Pollnau 2000,
+  Miyakawa–Dexter 1970, Auzel 2004. Suyver 2005 solo como abstract (no usado). `sources/tesis_juan.pdf`
+  (25 MB) no se extrajo.
+- Valores de figuras: los números del mapa salen del texto; las curvas (Yu Fig. 4, 5, 7; Langping
+  Fig. 2) solo se usan por la tendencia descrita en el texto.
+- Iteración 4: formulación asimétrica de la fracción resonante (defecto declarado) y parámetro libre.
+- El T_on y su subida con la potencia aparecen en todas las iteraciones (resultado conocido, no cuenta).
+- Muestras: Anderson calibró sobre polvo micrométrico de Lorad; los datos de contraste son de otras
+  muestras (micro y nano, con y sin recubrimiento), así que los valores absolutos no son comparables
+  y se priorizan tendencias y cocientes.
