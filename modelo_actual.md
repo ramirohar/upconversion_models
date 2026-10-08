@@ -51,6 +51,9 @@ solo para los gaps de las tasas multifonónicas y para las energías de las lín
 - Absorción Yb, decaimiento Yb radiativo y no radiativo.
 - ETU Yb→Er: 1→3, 2→5 (0), 3→7, 5→8, 6s→9 y 6h→9 (ambos con k_ET6−9).
 - Retrotransferencia Er→Yb: 3→1, 5→2 (0), 7→3, 9→5.
+- **Asistidas por fonones (iteración 3)**: 5→8 (ΔE = +700 cm⁻¹), 6s→9 (+2400), 6h→9 (+3050) y la
+  retrotransferencia 9→5 (+900), con k(T) = k(T0)·[(1+n(T))/(1+n(T0))]^(ΔE/ħω). Los desajustes salen de
+  los baricentros del modelo. 1↔3 (0) y 3↔7 (∓100 cm⁻¹, menores que ħω) quedan constantes.
 - Termalización 6h ↔ 6s: baja g_S·k_nr(0)·(1+n)², sube g_H·k_nr(0)·n², n a 325 cm⁻¹.
 - Multifonónicas 9→8, 8→7, 7→6h, 6h→5, 6s→5, 5→4 (0), 4→3, 3→2:
   k(T) = k(T0)·[(1+n(T))/(1+n(T0))]^(gap/ħω), y su compañera ascendente por balance detallado
@@ -70,3 +73,4 @@ solo para los gaps de las tasas multifonónicas y para las energías de las lín
 | `detailed_balance` | compañeros ascendentes de las multifonónicas | 0 |
 | `k_nr0` | acople 6h ↔ 6s | (grande = termalización instantánea) |
 | `cr_thermal` | CR6 asistida por fonones (iteración 2) | 0 |
+| `et_thermal` | transferencias Yb↔Er asistidas por fonones (iteración 3) | 0 |

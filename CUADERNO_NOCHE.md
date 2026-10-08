@@ -334,3 +334,36 @@ Factores a T → 0 con ħω = 359 cm⁻¹: 5→8 ×0,58; 6s→9 ×0,27; 6h→9 �
 - τ por excitación directa, FIR en equilibrio: sin cambios (no hay Yb excitado).
 Sorprendente: máximo simultáneo de las tres bandas a 80–200 K a 290 W/cm²; cambio de FIR por encima
 de 300 K.
+
+### Resultados
+Implementación: commit d9fbb72 (después del pre-registro 3d1ef4f). `tests/test_iter3_et.py`: con
+`et_thermal` = 0 se recupera el barrido de la iteración 2 a rtol 1e-6; los desajustes salen de los
+niveles (700, 2400, 3050, 900 cm⁻¹). 46 tests pasan. Barridos `noche/iter3_run.py` (~9 min cada uno);
+tabla `noche/data/compare_iter3.txt`; figuras `noche/figs/iter3/`. La ablación son los barridos de
+la iteración 2 (mismo modelo con `et_thermal` = 0).
+
+| métrica | iter. 2 (359) | iter. 3 (300) | iter. 3 (359) | iter. 3 (450) | literatura |
+|---|---|---|---|---|---|
+| R/G 400 K / 10 K a 290 W/cm² | 0,32 | 5,27 | 2,83 | 1,72 | > 1, monótono (Yu, bulk) |
+| R/G 483 K / 303 K a 0,8 W/cm² | 1,21 | 4,35 | 2,96 | 2,07 | > 1 (Xu) |
+| verde 10 K / 300 K a 290 W/cm² | 0,61 | 2,54 | 1,79 | 1,32 | máximo ~100 K (Yu) |
+| T del máximo del rojo a 290 W/cm² (K) | 160 | 260 | 240 | 120 | ~100 bulk / ~150 nano (Yu) |
+| azul 10 K / 300 K a 290 W/cm² | 4,94 | 5,87 | 4,19 | 2,30 | máximo ~100 K (Yu) |
+| T del máximo del rojo a 0,8 W/cm² (K) | 10 | 340 | 360 | 420 | — |
+| pendiente del rojo a 483 K, 0,8 W/cm² | 2,07 | 2,43 | 2,45 | 2,45 | 1,69 (Xu) |
+
+Contra el pre-registro:
+- R/G pasa a crecer con T a todas las potencias y para los tres ħω, como estaba pre-registrado
+  (signo de Yu y de Xu). **Reproduce la tendencia; no es emergente** (estaba en el pre-registro).
+- El verde a 290 W/cm² sube al enfriar (pre-registrado) y es monótono: no hay máximo cerca de 100 K
+  en ninguna banda a la vez. El azul sigue creciendo al enfriar (×2,3–5,9).
+- **No pre-registrado:** a baja potencia (0,1–0,8 W/cm²) el rojo **sube** con T hasta un máximo a
+  340–460 K (el pre-registro decía "el rojo cae menos"). Busqué datos de la intensidad roja absoluta
+  sobre 300 K a baja potencia: Dubey 2023 (29 nm, 1,2 W) dice que la emisión a 660 nm baja
+  ("the overall UC intensities decrease signi cantly", Fig. 7a), Li 2014 ve caída gradual en
+  partículas > 32 nm (sin dar la potencia en el texto), Xu 2024 solo da el orden de los picos. El único
+  dato comparable lo contradice: no cuenta.
+- La pendiente del rojo a alta T empeora (2,45 contra 1,69 de Xu).
+
+Estado: O6 reproducido en signo (esperado). O4 sigue en contra (sin máximo a 100–160 K). O7 (rojo)
+en contra.

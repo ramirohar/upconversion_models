@@ -40,6 +40,10 @@ def metrics(d):
         m[f"T_max visible @{P}"] = T[vis.argmax()]
         m[f"visible 160K/300K @{P}"] = at(d, vis, 160) / at(d, vis, 300)
         m[f"visible 40K/300K @{P}"] = at(d, vis, 40) / at(d, vis, 300)
+        for band in ("red", "blue"):
+            y = ser(d, band, P)
+            m[f"T_max {band} @{P}"] = T[y.argmax()]
+            m[f"{band} 10K/300K @{P}"] = y[0] / at(d, y, 300)
         rg = ser(d, "RG", P)
         m[f"R/G 483K/303K @{P}"] = at(d, rg, 483) / at(d, rg, 303)
         m[f"R/G 400K/10K @{P}"] = at(d, rg, 400) / rg[0]
@@ -59,6 +63,8 @@ LIT = {
     "visible 160K/300K @0.1": "2.2 (Langping, máx ~160 K)",
     "T_max visible @290.0": "~100 bulk / ~150 nano (Yu)",
     "T_max verde @290.0": "~100 bulk / ~150 nano (Yu)",
+    "T_max red @290.0": "~100 bulk / ~150 nano (Yu)",
+    "T_max blue @290.0": "~100 bulk / ~150 nano (Yu)",
     "tau verde 40K/300K": "2.59 (Langping 430/166)",
     "tau verde 353K/453K": "1.60 (Xu 226/141)",
     "R/G 483K/303K @0.8": "> 1 (Xu: rojo pasa a ser el pico mayor)",
