@@ -585,9 +585,13 @@ fonones; (c) O2 (ΔE efectivo 713–817 cm⁻¹ en cinco grupos) no se explica c
 A constantes: la termalización rápida fija el FIR en Boltzmann con el gap de entrada.
 
 Direcciones abiertas más prometedoras:
-1. **Decaimiento de la UC contra T a energía de pulso conocida** (o los datos crudos de Xu 2024): el
-   modelo predice que el cociente τ(55 K)/τ(230 K) del rojo pasa de ~1,2 a < 1 al subir la fracción de
-   Yb excitada de 1 % a 10 %; es un test directo y barato del mecanismo de alimentación térmica.
+1. **Decaimiento de la UC contra T a energía de pulso conocida** (o los datos crudos de Xu 2024).
+   Predicción del modelo final (`noche/prediction_pulse.py`, `noche/figs/final/prediction_pulse.png`;
+   fluencia F ≈ x0·hν/σ con σ_Yb = 1,2e-20 cm² citado por Langping): τ(55 K)/τ(230 K) del rojo
+   = 1,07–1,31 para F ≈ 17–170 mJ/cm² y los tres ħω, y se invierte (< 1) por encima de ~0,3–1 J/cm²
+   (ħω = 300–359; con 450 cm⁻¹ recién a ~1,7 J/cm²); τ(353 K)/τ(453 K) del verde 541 nm sube con F
+   (1,2–1,5 a 17 mJ/cm², 1,7–2,6 a 1,7 J/cm²). Los valores absolutos a 230 K bajan de ~1,2 ms a
+   ~0,5 ms entre 17 y 300 mJ/cm². Es un test directo y barato del mecanismo de alimentación térmica.
 2. **Estructura Stark de 2H11/2 y 4S3/2** para O2/O3: con las energías de los subniveles (necesitan
    una fuente accesible) el FIR integrado tendría un ΔE efectivo dependiente de T; es lo único dentro
    del marco de ecuaciones de tasa que puede subir la pendiente por encima de 650 cm⁻¹ a baja potencia.
