@@ -416,3 +416,14 @@ No ajusto r: barro r = 0,1, 0,3 y 0,6 con ħω = 359 cm⁻¹ y reporto los tres.
   propios autores (transferencia Yb→Er impedida a baja T): **reproduce lo conocido**, no emergente.
 Sorprendente: que la posición del máximo no dependa de r; que R/G se vuelva no monótono; que las
 pendientes suban a alta T.
+
+### Adenda al pre-registro de la iteración 4: dinámica tras un pulso (O11), antes de calcularla
+Agrego al barrido el observable dinámico O11 (Yu 2014 Fig. 7: los tiempos de subida suben de 10 a
+30 K y bajan por encima de 30 K, en todas las transiciones y tamaños β). Código: `noche/dynamics.py`
+(pulso instantáneo que excita 1 % de los Yb; τ_D de la pendiente tardía, τ_R del tiempo del máximo
+con la forma de Vial). Lo probé solo con `thermal` = 0 a 300 K para depurarlo (verde: τ_R = 21 µs,
+τ_D = 423 µs). Expectativa: τ_R está fijado sobre todo por el vaciado del Yb (613 s⁻¹ más la
+transferencia 1→3); al enfriar, 1→3 tiende a r·k, así que τ_R debería **crecer** al enfriar, de forma
+monótona; entre 10 y 30 K el factor de 1→3 cambia poco (n(40 cm⁻¹) pasa de 0,003 a 0,17 contra 4,7
+a 300 K), así que espero τ_R casi plano en ese tramo, sin el máximo a 30 K de Yu. Sorprendente: un
+τ_R no monótono con máximo a 20–60 K.
