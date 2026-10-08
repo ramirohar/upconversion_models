@@ -74,3 +74,58 @@ Observaciones repetidas por varios grupos y no usadas en la calibración: O1, O2
 O4 (dos grupos con acceso, un tercero vía cita), O5, O6 (dos grupos), O9 (dos grupos).
 Inaccesibles (Unpaywall is_oa = False): Suyver 2005 y 2006 (J. Lumin.), Renero-Lecuna 2011
 (Chem. Mater.), Pollnau 2000 (PRB).
+
+## Iteración 1 (fija): desdoblamiento y dependencia térmica
+
+### Modelo
+`src/upconversion_models/anderson_thermal.py` → `AndersonThermal` (ver `modelo_actual.md`).
+- Er6 → Er6s (4S3/2, g = 4, 18300 cm⁻¹) y Er6h (2H11/2, g = 12, +650 cm⁻¹; Suta 2025 Fig. 1a).
+- Acople 6h ↔ 6s de Suta 2025 eq. 6: baja = g_S·k_nr(0)·(1+n)², sube = g_H·k_nr(0)·n², n a
+  ħω = 325 cm⁻¹, k_nr(0) = 2,29 µs⁻¹ → sube/baja = 3·e^(−650 cm⁻¹/kT).
+- A_H/A_S = 5,52/3 (Suta 2025), con f_S(T0)·k_r6s + f_H(T0)·k_r6h = 1510 s⁻¹ (Anderson).
+  k_nr6, k_ET6−9 y k_CR6 de Anderson, iguales para ambos subniveles. A(T) constante.
+- Multifonónicas k(T) = k(T0)·[(1+n(T))/(1+n(T0))]^p, p = gap/ħω, ħω = 359 cm⁻¹ (mayor modo Raman
+  de red de β-NaYF4, Dubey 2023), con el compañero ascendente por balance detallado (g = 2J+1).
+- Interruptores del mismo modelo: `thermal` (0 → todas las tasas a T0), `detailed_balance`
+  (0 → sin compañeros ascendentes), `k_nr0` (acople 6h–6s).
+
+### Tests (`tests/test_anderson_thermal.py`, 21 tests con los de la Fase 0, pasan)
+- termalización rápida (k_nr0 = 1e10 s⁻¹), T = T0 y `detailed_balance` = 0: se recupera la línea base
+  a rtol 1e-6 (0,1, 10 y 1000 W/cm²);
+- `thermal` = 0, `detailed_balance` = 0, termalización rápida: se recupera Anderson a 20, 120, 500 y
+  700 K (1 y 100 W/cm²);
+- partición de Boltzmann 6h/6s con termalización rápida a 300 y 600 K (rtol 1e-4). A 100 K la
+  alimentación de 2H11/2 desde 4F7/2 ya rompe el equilibrio aun con k_nr0 = 1e10 s⁻¹.
+
+Nota: con los compañeros ascendentes encendidos el modelo por defecto no es idéntico a Anderson a T0:
+Anderson ajustó tasas efectivas sin ellos. Se cuantifica en los resultados.
+
+Cambio numérico: `steady.py` pasó de BDF a LSODA (BDF tardaba > 20 s con acoples de 1e9 s⁻¹), con
+umbral de integración 1e-7 s⁻¹ y t_end = 10 s, y el pulido de Newton ahora escala filas y columnas y
+toma las leyes de conservación por especie a partir de los nombres (el SVD confundía modos lentos con
+modos nulos cuando las tasas abarcan 10 décadas). La regresión de la Fase 0 sigue pasando a 1e-6.
+
+### Pre-registro (antes del barrido estándar)
+Antes de este pre-registro corrí una prueba de humo: 10 W/cm² a 20, 100, 300 y 500 K (verde total,
+rojo, azul, rad82, poblaciones de Er6). Lo que vi ahí condiciona las expectativas E2, E3 y E5, y lo
+declaro.
+
+Barrido: `noche/sweep.py` + `noche/iter1_run.py`; T = 10–90 K cada 10 y 100–700 K cada 20;
+P = 0,1, 0,8, 2, 10, 100 y 290 W/cm².
+
+| fila | expectativa | signo/magnitud esperados |
+|---|---|---|
+| O1 | FIR_pure crece con T; por debajo de ~150–200 K queda por encima de Boltzmann (alimentación no térmica de 2H11/2; es el T_on conocido, no cuenta) | — |
+| O2 | ΔE_eff de FIR_pure en ventanas ≥ 300 K ≈ 650 ± 20 cm⁻¹, es decir, **no** reproduce los 713–817 cm⁻¹ publicados. Con FIR_band (rad82 dentro de la banda de 4S3/2) ΔE_eff > 650 y creciente con P: unos +40 cm⁻¹ a 10 W/cm² (estimado de la prueba de humo), pocos cm⁻¹ a 0,8 W/cm², más de +100 cm⁻¹ a 290 W/cm². Como esto ya lo anticipo, no podrá contar como emergente salvo que la magnitud sea muy distinta | ver texto |
+| O3 | prefactor de FIR_pure ≈ 3·1,84 = 5,5 en ventanas altas | — |
+| O4 | verde, rojo y azul crecen monótonamente al enfriar (sin máximo a 100–160 K) a todas las potencias: **contradice** Yu 2014 y Langping 2023 | monótono |
+| O5 | verde y rojo bajan con T por encima de 300 K: reproduce | — |
+| O6 | rojo/verde **baja** con T (prueba de humo: 1,40 / 0,71 / 0,37 a 100 / 300 / 500 K): **contradice** Yu 2014 (bulk) y Xu 2024 | signo opuesto |
+| O7 | pendientes log-log crecen con T (más pérdidas lineales de 4I11/2 y 4I9/2): reproduce el signo de Xu 2024; magnitud incierta | + |
+| O9 | τ(4S3/2) por excitación directa baja poco con T: ~10 % entre 40 y 300 K y ~15 % entre 353 y 453 K, contra ×2,6 (Langping) y ×1,6 (Xu); valor absoluto ~650 µs (Anderson) contra 166–430 µs: **subestima** | débil |
+| O10 | τ(4F9/2) constante (k_nr5 = 0) ≈ 490 µs; Xu ve 497 → 583–605 µs al enfriar 230 → 55 K: **no reproduce** | 0 |
+| O11 | tiempos de subida: no se evalúan en esta iteración | — |
+| O12 | azul baja con T: reproduce | — |
+
+Sorpresas posibles: un máximo de la intensidad verde contra T a alguna potencia; rojo/verde creciente
+con T; ΔE_eff de FIR_pure lejos de 650 cm⁻¹ por encima de 300 K.
