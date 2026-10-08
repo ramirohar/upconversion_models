@@ -427,3 +427,37 @@ transferencia 1→3); al enfriar, 1→3 tiende a r·k, así que τ_R debería **
 monótona; entre 10 y 30 K el factor de 1→3 cambia poco (n(40 cm⁻¹) pasa de 0,003 a 0,17 contra 4,7
 a 300 K), así que espero τ_R casi plano en ese tramo, sin el máximo a 30 K de Yu. Sorprendente: un
 τ_R no monótono con máximo a 20–60 K.
+
+### Resultados
+Implementación: commit 992b9ba (después del pre-registro 8f38501; adenda O11 en b21772d antes de
+calcular la dinámica). `tests/test_iter4_nr.py`: con `nr_thermal` = 0 se recupera la iteración 3 a
+rtol 1e-6; desajustes de Li 2014 verificados. 60 tests pasan. Barridos `noche/iter4_run.py` (r = 0,
+0,1, 0,3, 0,6), tabla `noche/data/compare_iter4.txt`, figuras `noche/figs/iter4_r0.3/`. Dinámica:
+`noche/iter4_dynamics.py` → `noche/data/iter4_dynamics.json` (`noche/dyn_table.py` la imprime).
+
+| métrica | iter. 3 | r = 0 | r = 0,1 | r = 0,3 | r = 0,6 | literatura |
+|---|---|---|---|---|---|---|
+| T máx. visible a 0,1 W/cm² (K) | 10 | 300 | 280 | 200 | 10 | ~160 (Langping) |
+| visible 160 K / 300 K a 0,1 W/cm² | 1,32 | 0,62 | 0,76 | 1,07 | 1,60 | 2,2 (Langping) |
+| visible 40 K / 300 K a 0,1 W/cm² | 1,37 | 0,015 | 0,19 | 0,92 | 2,59 | "varies little" 300→40 K (Langping) |
+| T máx. verde / rojo / azul a 290 W/cm² (K) | 10 / 240 / 10 | 200 / 340 / 100 | 160 / 320 / 70 | 10 / 260 / 60 | 10 / 10 / 80 | ~100 en las tres (Yu bulk) |
+
+- Con r = 0 la UC se apaga al enfriar (×0,015 a 40 K): descartado por los datos, como se anticipó.
+- Con r = 0,1–0,3 aparece un máximo del visible a baja potencia, pero a 200–280 K y de solo
+  ×1,0–1,1, contra ~160 K y ×2,2 en Langping. A 290 W/cm² ningún r da el máximo de las tres bandas
+  cerca de 100 K. La posición del máximo depende de r (lo pre-registrado).
+- **Defecto de formulación:** la fracción resonante r solo entra en las transferencias que absorben
+  (1→3, 3→7); las inversas (3→1, 7→3) caen a 0,17 y 0,35 a T → 0 sin fracción resonante. Para r
+  grande eso rompe el balance entre ida y vuelta y produce el ×2,6–3 del verde a baja T con r = 0,6:
+  es un artefacto, no física.
+- O11 (dinámica, adenda): τ_R del verde **crece** al enfriar en forma monótona para todo r y para
+  la ablación (r = 0,3: 21 µs a 300 K → 38 µs a 10 K; casi plano entre 10 y 30 K), como estaba
+  pre-registrado: no reproduce el máximo a 30 K de Yu.
+- O7b (nueva fila, Sagaidachnaya y Kochubey 2020, β-NaYF4:17Yb,3Er de 440 nm, 1,5–9,4 W/cm²,
+  22–55 °C): la pendiente del verde sube hasta 6 % (baja intensidad) y 16 % (alta) entre 30 y 50 °C;
+  el modelo da entre −1 % y +2 % entre 300 y 320 K en todas las iteraciones
+  (`noche/slopes_saratov.py`). Contradice.
+
+Estado de la iteración 4: **mal condicionada** (el resultado depende del parámetro libre r y la
+formulación de la fracción resonante es asimétrica). Se deja en el código con `nr_thermal` y se
+**apaga por defecto** en el modelo final (`nr_thermal` = 0).
