@@ -193,3 +193,61 @@ del gap; no reproduce ningún dato.
 
 Estado de la iteración 1: completada. El modelo reproduce O1, O5 (baja P) y O12, y contradice O2,
 O3, O4, O6 (alta P), O7 (rojo), O9 y O10.
+
+## Iteración 2: relajación cruzada 4S3/2 asistida por fonones
+
+### Pregunta
+O9: la vida media de 4S3/2 cae con T en varios trabajos (Langping 2023: 430 → 166 µs entre 40 y
+300 K, core-shell 20Yb2Er, excitación directa; Xu 2024: 226 → 141 µs entre 353 y 453 K, micro
+20Yb2Er; Yu 2014 Fig. 7d: los tiempos de decaimiento bajan con T). No se usó en la calibración. El
+modelo de la iteración 1 da 115 µs casi constantes hasta 300 K, porque el canal dominante de pérdida
+del par verde es la relajación cruzada CR6 de Anderson (≈ 7300 s⁻¹ contra k_R6 = 1510 s⁻¹) y es
+independiente de T.
+
+### Fuentes
+- Langping 2023 (texto completo): "for Er3+-rich core–shell systems at the relatively high temperatures,
+  the lattice vibration (i.e., phonons) facilitates to fill the energy gaps in various CR processes"
+  (p. 4) y "the cascade phonon-assisted Er3+-Er3+ CR plays a dominant role in the upconversion energy
+  loss at room temperature. A cryogenic environment can suppress the harmful CR" (conclusión).
+  Para su muestra de bajo dopaje atribuyen la caída de τ a relajaciones no radiativas (p. 4); el
+  mecanismo lo tomo de su discusión de alto dopaje.
+- Suta 2025: "both at higher Er 3+ and Yb 3+ contents in β-NaYF4, the 4S3/2 level decays faster due to
+  additional cross-relaxation based on an interaction with neighbouring Er 3+ or Yb 3+ ions" (p. 7096).
+- Ley de la transferencia asistida por fonones (emisión de p fonones, factor (1+n)^p): Miyakawa y
+  Dexter 1970 (PRB 1, 2961) y Auzel 2004 (Chem. Rev. 104, 139): ambos **inaccesibles** (Unpaywall
+  is_oa = False). La forma es la misma que la de la relajación multifonónica de Riseberg y Moos 1968
+  (texto completo), que es lo que se usa.
+
+### Propuestas
+1. **CR6 asistida por fonones (elegida).** La CR6 de Anderson (4S3/2 + 4I15/2 → 4I11/2 + 4I13/2)
+   tiene un desajuste de (18300 − 10200) − 6500 = 1600 cm⁻¹ desde 4S3/2 y 2250 cm⁻¹ desde 2H11/2 que
+   se emite como fonones: k_CR6(T) = k_CR6(T0)·[(1+n(T))/(1+n(T0))]^(ΔE/ħω). Anclada al valor de
+   Anderson a T0, con el mismo ħω de las multifonónicas. **Parámetros libres nuevos: 0.** Bloque
+   `PhononAssistedEnergyTransfer` ya existente en `transitions.py`. Interruptor: `cr_thermal`
+   (1 encendido, 0 = CR6 constante como en la iteración 1).
+2. Retrotransferencia 4S3/2 → Yb (4S3/2 + ²F7/2 → 4I13/2 + ²F5/2, desajuste 1600 cm⁻¹; Suta y
+   Langping la mencionan). Descartada: canal que Anderson no tiene, su tasa a T0 sería un parámetro
+   libre sin anclaje.
+3. Todas las transferencias (ETU Yb→Er, retrotransferencias, CR4, UC2) asistidas por fonones.
+   Descartada por ahora: varios desajustes con baricentros son menores que ħω (3→7: −100 cm⁻¹,
+   7→3: +100 cm⁻¹) y en esos casos la ley necesita una fracción resonante libre por transferencia.
+
+### Pre-registro (antes de implementar y simular)
+Cuentas a mano con ħω = 359 cm⁻¹ (n(300 K) = 0,218):
+- τ verde: a T → 0 el factor es (1/1,218)^4,46 = 0,415, así que k_CR6 ≈ 3030 s⁻¹ y
+  τ(40 K) ≈ 1/(1375 + 3030) ≈ 227 µs; τ(300 K) ≈ 112 µs; cociente ≈ 2,0 (Langping: 2,6). Con
+  ħω = 300 cm⁻¹ el factor a T → 0 es 0,24 y el cociente ≈ 2,7. Entre 353 y 453 K espero τ ≈ 88 → 54 µs
+  (cociente ≈ 1,6; Xu: 1,60). Los valores absolutos quedan por debajo de los publicados (Anderson
+  tiene una CR mucho más fuerte que esas muestras). Esto es consecuencia directa de una sola tasa:
+  aunque coincida con los datos, no puede contar como emergente (criterio 4).
+- Intensidad verde contra T: la CR más débil al enfriar compensa en parte la pérdida por el corte
+  del reciclado 9→8→7→6 de la iteración 1. Espero verde(10 K)/verde(300 K) entre 1,0 y 1,5 a baja
+  potencia y que el verde caiga más rápido que en la iteración 1 por encima de 300 K. Es posible
+  que aparezca un máximo del verde a temperatura intermedia, pero no sé estimar dónde; si aparece
+  entre 100 y 200 K y con un cociente máx/300 K de 1,5–2,5 a 0,1 W/cm² (Langping 2,2× a ~160 K) lo
+  consideraré una magnitud no pre-registrada.
+- Rojo/verde: al subir T la CR más fuerte quita verde, así que R/G debería crecer con T más que en
+  la iteración 1 (posible cambio de signo a alta P; no lo sé).
+- Azul: sigue bajando con T. FIR (O1–O3) y τ rojo (O10): sin cambios.
+- Pendientes log-log: sin cambio apreciable (la CR6 es lineal en la población del verde).
+Sorprendente: un cambio en FIR o en τ rojo; un máximo del verde muy marcado (> 3×).
