@@ -496,3 +496,39 @@ y su efecto es directo sobre el nivel emisor, no cuenta; si viene de niveles ali
 Expectativa honesta: el cociente se mantiene en 1,1–1,3 para ħω 300–450 y x0 ≤ 0,01; con x0 = 0,1
 el valor absoluto baja (~460 µs) y puede salir del ±20 %. El verde 541 entre 353 y 453 K: espero un
 cociente ~1,3–1,6 (Xu: 1,60) con valores absolutos ~1,5× mayores que los de Xu.
+
+### Resultados
+`noche/iter5_decays.py` → `noche/data/iter5_decays.json` (ajuste de Xu y0 + A·e^(−t/τ)):
+
+| configuración | ħω | x0 | rojo 55 / 230 K (µs) | cociente | 541 nm 353 / 453 K (µs) | cociente |
+|---|---|---|---|---|---|---|
+| final (iter. 3) | 300 | 0,003 / 0,01 / 0,1 | 1170/893 · 727/632 · 202/323 | 1,31 · 1,15 · **0,63** | 335/200 · 188/96 · 106/40 | 1,67 · 1,96 · 2,63 |
+| final (iter. 3) | 359 | 0,003 / 0,01 / 0,1 | 1000/827 · 669/573 · 189/446 | 1,21 · 1,17 · **0,42** | 365/250 · 213/126 · 126/60 | 1,46 · 1,69 · 2,11 |
+| final (iter. 3) | 450 | 0,003 / 0,01 / 0,1 | 848/768 · 595/513 · 401/567 | 1,11 · 1,16 · **0,71** | 395/309 · 240/167 · 147/89 | 1,28 · 1,43 · 1,66 |
+| thermal = 0 | todos | todos | constante | 1,00 | constante | 1,00 |
+| Xu 2024 | — | — | 583/497 (653 nm), 605/496 (661 nm) | 1,17 / 1,22 | 226/141 | 1,60 |
+
+Ablaciones por tasa (ħω = 359, x0 = 0,01): fijar en T0 la T de norad3 o norad4 no cambia nada; la de
+norad8 baja el cociente del verde de 1,69 a 1,15 y la de norad9 sube el del rojo a 1,33. La
+dependencia térmica del decaimiento de la UC viene de los niveles que alimentan a los emisores
+(2H9/2 → 4F7/2 → verde; 4G11/2 → 4F9/2 y 2H9/2), no del nivel emisor (Xu la atribuye a Γrad + k_nr
+del propio nivel emisor, su eq. 2).
+
+Evaluación contra el criterio pre-registrado:
+- (i) **falla**: con x0 = 0,1 el cociente del rojo se invierte (0,42–0,71) y con x0 = 0,003 el valor
+  absoluto a 230 K (768–893 µs) sale del ±20 % de 497 µs. Solo con x0 ≈ 0,01 el modelo da 573 → 669 µs
+  (×1,17) contra 497 → 583 µs (×1,17) de Xu, y 213 → 126 µs contra 226 → 141 µs en el verde 541.
+- (ii) se cumple (thermal = 0 → ×1,00). (iii) el efecto viene de niveles alimentadores.
+- Xu no informa la energía del pulso, así que no hay forma de fijar x0 desde la fuente. Exploración
+  **post hoc** (no cuenta, `noche/iter5_cwoff.py`): apagando una excitación continua de 0,8 W/cm²
+  (régimen débil) los decaimientos son de ms (rojo ~4,5 ms, verde ~1,3 ms), un orden de magnitud más
+  largos que los de Xu.
+
+**No es emergente**: la coincidencia cuantitativa con Xu existe en una franja estrecha de intensidad de
+pulso que la fuente no permite verificar. Queda como la dirección abierta más prometedora: un
+experimento de decaimiento de la UC contra T a energía de pulso conocida (o los datos crudos de Xu)
+decidiría si el mecanismo "alimentación térmica desde 2H9/2 y 4G11/2" es el correcto.
+
+Corrección del mapa: la fila O10 (y la parte de Xu de O9) debe compararse con el decaimiento de la UC,
+no con la vida media por excitación directa; el veredicto de la iteración 1 ("contradice") se reemplaza
+por "depende de la energía del pulso, no decidible con la fuente".

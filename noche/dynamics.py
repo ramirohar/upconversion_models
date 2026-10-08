@@ -17,7 +17,29 @@ from upconversion_models.jablonski_patch import EmissionTransform, Simulator
 
 u = get_application_registry()
 
-BANDS = {"green": ("line_rad6h1", "line_rad6s1"), "red": ("line_rad51",), "blue": ("line_rad81",)}
+BANDS = {
+    "green": ("line_rad6h1", "line_rad6s1"),
+    "red": ("line_rad51",),
+    "blue": ("line_rad81",),
+    "520": ("line_rad6h1",),
+    "541": ("line_rad6s1",),
+}
+
+
+def fit_single_exp(t, I, lo=0.05):
+    """Xu 2024 eq. 1: y = y0 + A·exp(-t/τ), ajustado desde el máximo hasta que I cae a `lo`·máximo."""
+    from scipy.optimize import curve_fit
+
+    ip = int(np.argmax(I))
+    after = np.arange(ip, t.size)
+    iend = after[np.argmax(I[after] < lo * I[ip])] if np.any(I[after] < lo * I[ip]) else t.size - 1
+    tt, yy = t[ip : iend + 1] - t[ip], I[ip : iend + 1] / I[ip]
+    tau0 = max(tt[-1] / 3, 1e-6)
+    try:
+        p, _ = curve_fit(lambda x, y0, A, tau: y0 + A * np.exp(-x / tau), tt, yy, p0=(0.0, 1.0, tau0), maxfev=20000)
+        return float(p[2])
+    except RuntimeError:
+        return np.nan
 
 
 def pulse_curves(model, T, x0=0.01, extra=None, t_end=5e-3, n=4000):
@@ -29,6 +51,27 @@ def pulse_curves(model, T, x0=0.01, extra=None, t_end=5e-3, n=4000):
     exc = x0 * y0[iyb1]
     y0[iyb1] -= exc
     y0[iyb2] += exc
+    dy = np.empty_like(y0)
+    t = np.r_[0, np.geomspace(1e-8, t_end, n)]
+    sol = solve_ivp(lambda tt, y: np.array(prob.rhs(tt, y, prob.p, dy)).copy(), (0, t_end), y0,
+                    method="LSODA", t_eval=t, rtol=1e-8, atol=1e-18)
+    out = np.empty((len(prob.scale), t.size))
+    out = prob.transform(sol.t, sol.y, prob.p, out)
+    keys = [str(k) for k in sim.transform.output.keys()]
+    lines = {k: np.asarray(out)[i] for i, k in enumerate(keys)}
+    return sol.t, {b: sum(lines[k] for k in ks) for b, ks in BANDS.items()}
+
+
+def cw_off_curves(model, T, P, extra=None, t_end=5e-3, n=4000):
+    """Decaimiento al apagar una excitación continua de P (W/cm²) desde su estado estacionario."""
+    from upconversion_models.steady import steady_state
+
+    sim = Simulator(model).with_transform(EmissionTransform("emission"), append=True)
+    base = {model.T: T * u.K, **(extra or {})}
+    ss = steady_state(sim, {**base, model.energy_flux: P * u.W / u.cm**2})
+    prob = sim.with_values({**base, model.energy_flux: 0 * u.W / u.cm**2}).create_problem()
+    names = [str(v) for v in sim.compiled.variables]
+    y0 = np.array([ss[k] for k in names])
     dy = np.empty_like(y0)
     t = np.r_[0, np.geomspace(1e-8, t_end, n)]
     sol = solve_ivp(lambda tt, y: np.array(prob.rhs(tt, y, prob.p, dy)).copy(), (0, t_end), y0,
