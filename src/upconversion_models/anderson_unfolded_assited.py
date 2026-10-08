@@ -100,9 +100,9 @@ class AndersonModelUnfoldedAssitedETU(SpectroscopicSystem):
     k_r8: Parameter = assign(default=2_330 / u.s)
     k_r6: Parameter = assign(default=1_510 / u.s)
     # Split of Anderson's k_r6 = 1510 at T0: fs(T0)·k_r6s + (1 - fs(T0))·k_r6h = k_r6,
-    # with k_r6h / k_r6s = 1.53 from the Boltzmann fit to Yu 2014 Fig 5c
-    k_r6s: Parameter = assign(default=1_366 / u.s)
-    k_r6h: Parameter = assign(default=2_086 / u.s)
+    # with k_r6h / k_r6s = C = 5.52 / 3 from the LIR fit of Suta 2025 (C·g2/g1 = 5.52)
+    k_r6s: Parameter = assign(default=1_375 / u.s)
+    k_r6h: Parameter = assign(default=2_529 / u.s)
     k_r5: Parameter = assign(default=2_039 / u.s)
     k_r3: Parameter = assign(default=73 / u.s)
     k_r2: Parameter = assign(default=110 / u.s)
@@ -116,8 +116,8 @@ class AndersonModelUnfoldedAssitedETU(SpectroscopicSystem):
     # Additional parameters
     k_uc2: Parameter = assign(default=2.31e-17 / u.s * u.cm**3)
 
-    # Manifold rates
-    k_therm: Parameter = assign(default=1e11 / u.s)
+    # Manifold rates: intrinsic 2H11/2 <-> 4S3/2 coupling knr(0) (Suta 2025)
+    k_therm: Parameter = assign(default=2.29e6 / u.s)
 
     # Parameters introduced (not reported in Anderson's)
     site_density: Parameter = assign(default=1.38e22 / u.cm**3)
@@ -176,9 +176,9 @@ class AndersonModelUnfoldedAssitedETU(SpectroscopicSystem):
         default=0,
     )
 
-    # 520 cm-1 above Er6s: Boltzmann fit to Yu 2014 Fig 5c, R_HS = 4.58 exp(-745 K / T)
+    # 650 cm-1 above Er6s: high-resolution excitation spectra at 77 K (Suta 2025)
     Er6h: SingletState = initial(
-        energy=18820 * hc / u.cm,
+        energy=18950 * hc / u.cm,
         spin_multiplicity="singlet",
         default=0,
     )
@@ -341,13 +341,22 @@ class AndersonModelUnfoldedAssitedETU(SpectroscopicSystem):
         resonant_fraction=resonant_fraction,
     )
 
-    # 6s_6h thermalization
+    # 6s_6h thermalization, k_therm = knr(0) of Suta 2025 (eq. 6): each rate carries
+    # the degeneracy of its final level, g(4S3/2) = 4 down and g(2H11/2) = 12 up
     relaxation = TemperatureDependentInternalRelaxation(
-        T=T, source=Er6h, target=Er6s, rate=k_therm / 12
+        T=T,
+        source=Er6h,
+        target=Er6s,
+        rate=4 * k_therm,
+        phonon_wavenumber=phonon_wavenumber,
     )
 
     excitation = TemperatureDependentInternalExcitation(
-        T=T, source=Er6s, target=Er6h, rate=k_therm / 4
+        T=T,
+        source=Er6s,
+        target=Er6h,
+        rate=12 * k_therm,
+        phonon_wavenumber=phonon_wavenumber,
     )
 
     # Non radiative decays, with their upward partners by detailed balance

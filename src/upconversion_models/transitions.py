@@ -64,12 +64,15 @@ class TemperatureDependentInternalConversionRef(Base):
     """Downward phonon emission plus its upward partner by detailed balance:
     k_down(T) = k(T_A) · [(1 + n(T)) / (1 + n(T_A))]^p
     k_up(T) = k(T_A) · (g_source / g_target) · [n(T) / (1 + n(T_A))]^p
-    so that k_up / k_down = (g_source / g_target) · exp(-ΔE / kT) at every T."""
+    so that k_up / k_down = (g_source / g_target) · exp(-ΔE / kT) at every T.
+    `detailed_balance` (default 1) scales k_up: 0 removes the upward partner,
+    e.g. to check the reduction to a model without it."""
 
     reference_rate: Parameter = assign(default=0 / u.s)
     T_A: Parameter = assign(default=300 * u.K)
     g_source: Parameter = assign(default=1)
     g_target: Parameter = assign(default=1)
+    detailed_balance: Parameter = assign(default=1)
 
     factor_down = real.expm1(-Base.f * Base.phonon_wavenumber / T_A) / real.expm1(
         -Base.f * Base.phonon_wavenumber / Base.T
@@ -86,7 +89,7 @@ class TemperatureDependentInternalConversionRef(Base):
     up = MassAction(
         reactants=[Base.target],
         products=[Base.source],
-        rate=reference_rate * g_source / g_target * factor_up**Base.p,
+        rate=detailed_balance * reference_rate * g_source / g_target * factor_up**Base.p,
     )
 
 
