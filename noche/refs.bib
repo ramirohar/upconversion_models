@@ -1,0 +1,183 @@
+% refs.bib — sesión nocturna 2026-10-08
+% Cada número usado lleva su cita textual y su ubicación (tabla, figura, ecuación o página).
+% Las citas se copiaron del texto extraído con pypdf de los PDF en sources/ (puede haber
+% artefactos de extracción: ligaduras "ﬀ", "ﬁ", espacios partidos); el sentido no cambia.
+% access = full-text (PDF en sources/), abstract-only, o inaccessible.
+% Si access = abstract-only, ningún número de esa entrada se usa como parámetro ni como contraste.
+
+@article{anderson2013,
+  author  = {Anderson, R. B. and Smith, S. J. and May, P. S. and Berry, M. T.},
+  title   = {Revisiting the NIR-to-Visible Upconversion Mechanism in beta-NaYF4:Yb3+,Er3+},
+  journal = {J. Phys. Chem. Lett.}, year = {2014}, volume = {5}, pages = {36--42},
+  doi     = {10.1021/jz402366r},
+  file    = {sources/anderson2013.pdf}, access = {full-text},
+  quote1  = {"Using micrometer-sized powders of β-NaYF4:18%Yb3+,2% Er3+, we measured luminescence decay curves following pulsed excitation at 943 nm for the blue, green, red, and 1 and 1.5 μm emission over a range of excitation ﬂuxes from 2 to 200 mJ/cm 2 per pulse." (p. 37) -> datos de calibración: T ambiente, pulsado.},
+  quote2  = {"green luminescence arises from the 2H11/2,4S3/2 levels ... which relaxes nonradiatively to the thermalized emitting-state manifold, 2H11/2,4S3/2." (p. 36) -> Er6 = par verde 2H11/2 + 4S3/2.},
+  quote3  = {"we propose a new mechanism involving Yb 3+-to-Er3+ energy-transfer UC out of the green-emitting 2H11/2,4S3/2 states" (abstract, p. 36) y "the relevant new ETU step is illustrated in the right-hand panel of Figure 1 with an arrow labeled kET6−9" (p. 37) -> nivel 6 = par verde.},
+  quote4  = {Tabla 1, columna "new UC model": "kYb 645 613", "kYb_rad 429 393", "kET1−3/kET3−1 7.9 5.9", "kET3−7 ... 1.54 × 10−15", "kET5−8 ... 1.76 × 10−15", "kET6−9 n/a 6.07 × 10−15", "kET3−1 [2 × 10−16][ 2 × 10−16]", "kET7−3 ... 2.04 × 10−16", "kET9−5 n/a 2.84 × 10−16", "kNR9 ... 1.76 × 106", "kNR8 45 200 43 450", "kNR7 [1.0 × 106] [1.0 × 106]", "kNR6 1892 26", "kNR5 0.0 0.0", "kNR4 25 400 22 120", "kNR3 32 61", "kR8 ... 2330", "kR6 (green) 880 1510", "kR5 (red) 2770 2039", "kR3 (1 μm) 130 73", "kR2 (1.5 μm) 111 110", "kCR6 ... 2.79 × 10−17", "kCR4 ... 8.04 × 10−19", "kUC2 ... 2.31 × 10−17", "β (fraction of isolated Yb 3+ and Er 3+) 0.16 0.05" (Tabla 1, p. 40) -> parámetros de AndersonModel.},
+  quote5  = {"we have observed that the green-to-red intensity ratio shows little dependence on the Er 3+ concentration" (p. 37) -> usado en la calibración.},
+}
+
+@article{suta2025,
+  author  = {Suta, M.},
+  title   = {What makes beta-NaYF4:Er3+,Yb3+ such a successful luminescent thermometer?},
+  journal = {Nanoscale}, year = {2025}, volume = {17}, pages = {7091--7099},
+  doi     = {10.1039/d4nr04392h},
+  file    = {sources/suta2025.pdf}, access = {full-text},
+  usage   = {fuente de parámetros (ΔE21, g, k_nr(0), C); NO sirve como dato de contraste para FIR(T) ni T_on},
+  quote1  = {"In the host β-NaYF4, they are separated by an energy gap of ΔE21 = (650 ± 10) cm −1 according to high-resolution excitation spectra of a representative microcrystalline sample at 77 K (see Fig. 1(a))" (p. 7093, Fig. 1a) -> ΔE(6H-6S) = 650 cm-1.},
+  quote2  = {"In the case of Er 3+,i ti s g2 = 12 and g1 = 4, if thermalization between the di ﬀerent Stark states in a ligand field is assumed" (p. 7093) -> g_H = 12, g_S = 4.},
+  quote3  = {"In this particular compound, an exponential pre-factor of Cg2/ g1 = 5.52 ± 0.21 is estimated" (p. 7093, ajuste de Fig. 1c) -> C = 5.52/3 = 1.84 = A(2H11/2->4I15/2)/A(4S3/2->4I15/2).},
+  quote4  = {"an intrinsic nonradiative transition rate of knr(0) = (2.29 ± 0.54) µs−1 governing the coupling the 2H11/2 and 4S3/2 level can be estimated from eqn (6)" (p. 7095, eq. 6) -> k_nr(0).},
+  quote5  = {"with a cuto ﬀ phonon energy of ħωcut = 450 cm −1 (ref. 64)" (p. 7095) -> cota superior de ħω.},
+  quote6  = {"the radiative decay rate (corrected for reabsorption eﬀects) of the 4S3/2 level in β-NaYF4:0.1 mol%Er 3+ is k1r = 1.55 ms −1" (p. 7095).},
+  quote7  = {"From the estimated onset temperature of Ton = (100 ± 5) K" (p. 7095, Fig. 1c).},
+  quote8  = {eq. (6): "Ton = ℏωeff / kB ln[1 + (g2 knr(0)/k1)^(1/p)]" con "p =2e ﬀective phonon modes of energy ħωeﬀ = ΔE21/p" (p. 7095).},
+}
+
+@article{yu2014,
+  author  = {Yu, W. and Xu, W. and Song, H. and Zhang, S.},
+  title   = {Temperature-dependent upconversion luminescence and dynamics of NaYF4:Yb3+/Er3+ nanocrystals: influence of particle size and crystalline phase},
+  journal = {Dalton Trans.}, year = {2014}, volume = {43}, pages = {6139--6147},
+  doi     = {10.1039/c3dt53562b},
+  file    = {sources/yu2014.pdf}, access = {full-text},
+  quote1  = {"The OA-capped NaYF 4:18% Yb, 2% Er NCs were synthesized" (p. 6140) -> mismo dopaje que Anderson.},
+  quote2  = {"For the other β-phase UCNCs (25 nm, 45 nm and bulk), the UCL intensity of Er 3+ ions first increases with elevated temperature, and it demonstrates an optimum at a certain temperature, and then decreases with further increase of temperature, for all the transitions. For the bulk sample the optimum appears around 100 K, and for the 25 nm and 45 nm samples, the optimum appears around 150 K." (p. 6142, Fig. 4).},
+  quote3  = {"excited under 980 nm LD excitation with the same power density (2.9 W mm −2) at veri ﬁed temperatures from 10 K to 400 K in vacuum" (caption Fig. 4, p. 6143) -> 290 W/cm2.},
+  quote4  = {"RHS for the β-phase (25, 45 nm and bulk) NaYF 4 UCNCs increases solely with elevated temperature" (p. 6143, Fig. 5c); "When the temperature is below 100 K, the transition of 2H11/2– 4I15/2 cannot be identified due to low electron population of 2H11/2." (p. 6143).},
+  quote5  = {"for the bulk sample, Rr/g increases solely with the elevated temperature, which can be attributed to the increase of non- radiative relaxation rates of 4S3/2– 4F9/2, 4I11/2– 4I13/2. For the other samples, the variation tendency is similar above 100 K" (p. 6144, Fig. 5d).},
+  quote6  = {"in the 25 nm, 45 nm and the bulk samples, for all the transitions the rising time constants first rapidly increase with the increase of temperature from 10 K to 30 K, and then gradually decrease with the increase of temp- erature above 30 K" (p. 6145, Fig. 7a,c,e); "for most cases, the decay time constants decrease with the increase of temp- erature" (p. 6145, Fig. 7b,d,f).},
+  quote7  = {"For the green emission, the values of n were determined to be 1.38, 1.62, 1.34, and 1.92." (p. 6142, Fig. 3; el orden de las muestras no se explicita en el texto).},
+  quote8  = {Tabla 1: "4S3/2– 4I15/2 W/ms−1 1.01 1.25 1.59 5.03" (Bulk, 45 nm, 25 nm, 6 nm) (p. 6146).},
+  quote9  = {"Suyver et al .29 pointed out that there is an energy gap between the two lowest crystal-field components 2F5/2|0> and 2F5/2|1> of the Yb 3+ ions and the ET from 2F5/2|1> to the lowest energy crystal-field component 4I11/2 state of the Er 3+ ions is very eﬃcient." (p. 6142) -> mecanismo propuesto por los autores.},
+}
+
+@article{langping2023,
+  author  = {Tu, L. and Wu, K. and Luo, Y. and Wang, E. and Yuan, J. and Zuo, J. and Zhou, D. and Li, B. and Zhou, J. and Jin, D. and Zhang, H.},
+  title   = {Significant Enhancement of the Upconversion Emission in Highly Er3+-Doped Nanoparticles at Cryogenic Temperatures},
+  journal = {Angew. Chem. Int. Ed.}, year = {2023}, volume = {62}, pages = {e202217100},
+  doi     = {10.1002/anie.202217100},
+  file    = {sources/langping2023.pdf}, access = {full-text},
+  quote1  = {"While the intensity of the control sample of NaYF4: 20%Yb, 2%Er@NaYF4 varies little when the temperature decreases from 300 to 40 K, which is well in line with the previous reports.[21] For LD UCNPs (i.e., NaYF4: 20%Yb, 2%Er@NaYF4), the temper- ature-dependent intensity saturation appears at�160 K (2.2 folds stronger than the case at 300 K)." (p. 3, Fig. 2b,c; excitación "0.1 Wcm  2 980 nm").},
+  quote2  = {"Our observations resulted from the competition between the two opposite effects at the reduced temperature, i.e., the hindered Yb3+! Er3+ energy transfer (caused by retrogressive phonon activity) versus the restricted non-radiative energy loss." (p. 3) -> interpretación de los autores.},
+  quote3  = {"The decay time decreases from 430 to 166 μs with temperatures increasing from 40 to 300 K." (p. 4, Fig. 3e izq.; 4S3/2, emisión 540 nm, excitación directa 488 nm, muestra control NaYF4:20%Yb,2%Er@NaYF4).},
+  quote4  = {"controlled synthesis of pure hexago- nal phase, uniform size, and structure (20 nm core with 5 nm thick shell)" (p. 3).},
+}
+
+@article{li2014,
+  author  = {Li, D. and Shao, Q. and Dong, Y. and Jiang, J.},
+  title   = {Anomalous Temperature-Dependent Upconversion Luminescence of Small-Sized NaYF4:Yb3+,Er3+ Nanoparticles},
+  journal = {J. Phys. Chem. C}, year = {2014},
+  doi     = {10.1021/jp507804h},
+  file    = {sources/li2014.pdf}, access = {full-text},
+  quote1  = {"The integrated intensity over a wavelength range of 510 −680 nm was doubled as the temperature increased from 25 to 85 °C." (24 nm, Fig. 1).},
+  quote2  = {"For 32 nm UCNPs, the increase of the UCL intensity with temperature is almost negligible. ... Especially for 7 nm UCNPs, the integrated intensity increased by ∼3.3 times as the temperature increased from 25 to 65 °C. However, when the particle size is larger than 32 nm, only the gradual decreases in the UCL intensity is observed with increasing temperature." (Fig. 5a).},
+  quote3  = {"Suyver et al. 20 have studied the temperature-dependent UCL of NaYF 4:Yb3+,E r 3+ in the temperature range of 5 −200 K, and found an UCL enhance- ment phenomenon with increasing temperature from 5 to 50 K." (introducción; cita de segunda mano de Suyver 2005).},
+}
+
+@article{zhou2013,
+  author  = {Zhou, S. and Deng, K. and Wei, X. and Jiang, G. and Duan, C. and Chen, Y. and Yin, M.},
+  title   = {Upconversion luminescence of NaYF4:Yb3+,Er3+ for temperature sensing},
+  journal = {Opt. Commun.}, year = {2013}, volume = {291}, pages = {138--142},
+  doi     = {10.1016/j.optcom.2012.11.005},
+  file    = {sources/zhou2013.pdf}, access = {full-text},
+  quote1  = {"pure b-NaYF4:20%Yb3 þ ,2 % E r3 þ microprisms" (abstract).},
+  quote2  = {"R ¼ 8:06exp /C0 1082:1=T" (eq. 4, Fig. 3b) y "the effective energy difference obtained from the ﬁtting is 752 cm /C0 1" (p. 140); rango "from 160 K to 300 K using an unfocused laser beam of typically 29 mW at 980 nm" (p. 140).},
+  quote3  = {"The slope of the ﬁtting line is 1.95 at relatively low excitation density, indicating a two-photon UC process. The slope of the curve decreases at higher excitation density." (Fig. 2, 539.6 nm).},
+  quote4  = {"When the sample chamber temperature is 180 K, 240 K, 300 K under 500 mW exciting power, the calculated deviation is 38 K, 30 K, and 18 K, respectively." (Fig. 5b) -> calentamiento por láser.},
+  quote5  = {"a weak emission peak located at 557 nm originated from the 2H9/2-4I13/2 transition can also introduce inﬂuence under high exciting power" (p. 141, Fig. 5a).},
+}
+
+@article{geitenbeek2017,
+  author  = {Geitenbeek, R. G. and Prins, P. T. and Albrecht, W. and van Blaaderen, A. and Weckhuysen, B. M. and Meijerink, A.},
+  title   = {NaYF4:Er3+,Yb3+/SiO2 Core/Shell Upconverting Nanocrystals for Luminescence Thermometry up to 900 K},
+  journal = {J. Phys. Chem. C}, year = {2017},
+  doi     = {10.1021/acs.jpcc.6b10279},
+  file    = {sources/geitenbeek2017.pdf}, access = {full-text (just accepted manuscript)},
+  quote1  = {"NaY 0.8 Yb 0.18 Er 0.02 F4 nanocrystals (NCs)" (introducción); "Monodisperse ca. 20 nm NaYF 4:Yb,Er nanocrystals" (abstract).},
+  quote2  = {"the steepness of the fit corresp onds to a ∆E of 714 cm B1" (Fig. 3b, NC sin recubrir).},
+  quote3  = {"the steepness of the fit corresponds to a ∆ E of 716 cm H1" (Fig. 6b, NaYF4@SiO2, 300-900 K).},
+  quote4  = {"The rise times are ca. 35 µs and ... The decay time of ca. 100 µs is determined by both radiative decay to all lower lev els and nonBradiative relaxation to the 4F9/2 level" (Fig. 2c, T ambiente).},
+}
+
+@article{tong2015,
+  author  = {Tong, L. and Li, X. and Hua, R. and Li, X. and Zheng, H. and Sun, J. and Zhang, J. and Cheng, L. and Chen, B.},
+  title   = {Comparative study on upconversion luminescence and temperature sensing of alpha- and beta-NaYF4:Yb3+/Er3+ nano-/micro-crystals derived from a microwave-assisted hydrothermal route},
+  journal = {J. Lumin.}, year = {2015},
+  doi     = {10.1016/j.jlumin.2015.07.017},
+  file    = {sources/tong2015.pdf}, access = {full-text},
+  quote1  = {"the values of the free parameters C and ΔE/k in Eq. (1) were con ﬁrmed to be 9.04 and 1085.3 K for α-phase sample, 9.13 and 1025.8 K for β-phase sample." (Fig. 6a, 303-573 K) -> β: ΔE = 713 cm-1.},
+  quote2  = {"2 W/cm 2 was chosen as the pump power density of LD" (p. 4).},
+  quote3  = {"Both of them decrease ﬁrst and reach the minimum value at around 483 K, and then increase with further increase of tem- perature." (Fig. 5) -> atribuido por los autores a desorción de agua/orgánicos (artefacto de muestra).},
+}
+
+@article{dubey2023,
+  author  = {Dubey, C. and Yadav, A. and Baloni, D. and Kachhap, S. and Singh, S. K. and Singh, A. K.},
+  title   = {Impact of crystal structure on optical properties and temperature sensing behavior of NaYF4:Yb3+/Er3+ nanoparticles},
+  journal = {RSC Adv.}, year = {2023}, volume = {13}, pages = {20975--20983},
+  doi     = {10.1039/d3ra03148a},
+  file    = {sources/dubey2023.pdf}, access = {full-text},
+  quote1  = {"The Raman spectra reveal ﬁve sharp peaks at 253 cm −1, 307 cm −1, 359 cm −1, 485 cm −1, and 628 cm −1 for b-NaYF4:Yb3+/Er3+" (abstract); "Shan et al. have attributed Raman peaks observed at 485 cm −1, and 628 cm −1 to organic" (p. 4) -> fonones de red <= 359 cm-1.},
+  quote2  = {"it was observed 816 cm−1 and 1035 cm−1, respectively" (ΔE de a- y b-... ver nota) — texto completo: "The energy separation between 2H11/2 and 4S3/2 thermally coupled levels of Er3+ ions were calculated fora-a n db-NaYF4:Yb3+/ Er3+ using slope obtained in Fig. 7(b) and 8(a) and it was observed 816 cm−1 and 1035 cm−1, respectively." Fig. 7b es b (β) y Fig. 8a es a (α), así que β: 816 cm-1, α: 1035 cm-1 (300-650 K).},
+  quote3  = {"by observing the emission intensities at 660 nm it can be inferred that the overall UC intensities decrease signi cantly with an increase in the temperature of the sample." (Fig. 7a, 300-650 K, β 29 nm).},
+}
+
+@article{xu2024,
+  author  = {Xu, X. and Wang, Z. and Hou, J. and Zhang, T. and Zhao, X. and Di, S. and Li, Z.},
+  title   = {Upconversion Emission and Dual-Mode Sensing Characteristics of NaYF4:Yb3+/Er3+ Microcrystals at High and Ultralow Temperatures},
+  journal = {Nanomaterials}, year = {2024}, volume = {14}, pages = {871},
+  doi     = {10.3390/nano14100871},
+  file    = {sources/xu2024.pdf}, access = {full-text (CC BY)},
+  quote1  = {"Micron-sized NaYF4:20%Yb3+/2%Er3+ crystals were hydrothermally synthesized." (sec. 2.2); "when the power density of 980 nm laser is 800 mW cm−2" (Fig. 2).},
+  quote2  = {"At 303 K, the slopes at 520, 541, and 653 nm are 1.53, 1.22, and 1.30, respectively, whereas, at 483 K, they are 1.82, 1.73, and 1.69, respectively." (Fig. 3c,f).},
+  quote3  = {"At 303 K, the emission peak intensity is the highest at 541 nm, lower at 653 nm, and lowest at 520 nm. Conversely, at 483 K, the peak intensity is the highest at 653 nm, lower at 520 nm, and lowest at 541 nm." (Fig. 3a,d).},
+  quote4  = {"as the temperature increased from 353 to 453 K, the luminescence decay kinetics at 520 nm decreased from 219 to 157 µs, and the luminescence decay kinetics at 541 nm decreased from 226 to 141 µs." (Fig. 5a,b; excitación 980 nm).},
+  quote5  = {"from 230 to 55 K, the luminescence decay kinetics at 653 nm increased from 497 to 583 µs. Meanwhile, the luminescence decay kinetics at 661 nm increased considerably from 496 to 605 µs." (Fig. 5).},
+  quote6  = {"Figure 4d shows a decrease in the upconversion emission intensity at 407 nm when the temperature is raised from 55 to 195 K." (Fig. 4c,d; también 353 -> 453 K).},
+  quote7  = {"resulting in an experimental ∆E value of 817.19 cm−1, which is marginally higher than the actual energy level difference in Er3+" (Fig. 6a, 353-453 K).},
+}
+
+@article{riseberg1968,
+  author  = {Riseberg, L. A. and Moos, H. W.},
+  title   = {Multiphonon Orbit-Lattice Relaxation of Excited States of Rare-Earth Ions in Crystals},
+  journal = {Phys. Rev.}, year = {1968}, volume = {174}, pages = {429},
+  doi     = {10.1103/PhysRev.174.429},
+  file    = {sources/riseberg1968.pdf}, access = {full-text},
+  quote1  = {"The temperature dependences were fitted with a theoretical model involving the stimulated emission of phonons due to the thermally populated phonon modes. These results indicate that the decay involves the emission of high-energy optical phonons and occurs in approximately the lowest order permitted by energy conservation and cuto8 in the phonon spectrum." (abstract) -> forma (1+n)^p con p = ΔE/ħω.},
+}
+
+@article{collins1998,
+  author  = {Collins, S. F. and Baxter, G. W. and Wade, S. A. and Sun, T. and Grattan, K. T. V. and Zhang, Z. Y. and Palmer, A. W.},
+  title   = {Comparison of fluorescence-based temperature sensor schemes: Theoretical analysis and experimental validation},
+  journal = {J. Appl. Phys.}, year = {1998}, volume = {84}, pages = {4649},
+  doi     = {10.1063/1.368705},
+  file    = {sources/collins1998.pdf}, access = {full-text},
+  note    = {sin números usados},
+}
+
+% ---------------- inaccesibles (Unpaywall: is_oa = False, 2026-10-08) ----------------
+@article{suyver2005,
+  author = {Suyver, J. F. and Grimm, J. and Krämer, K. W. and Güdel, H. U.},
+  title  = {Highly efficient near-infrared to visible up-conversion process in NaYF4:Er3+,Yb3+},
+  journal = {J. Lumin.}, year = {2005}, volume = {114}, pages = {53--59},
+  doi    = {10.1016/j.jlumin.2004.11.012}, access = {inaccessible},
+  note   = {solo conocido por citas de Yu 2014 y Li 2014; no se usa ningún número},
+}
+@article{suyver2006,
+  author = {Suyver, J. F. and Grimm, J. and van Veen, M. K. and Biner, D. and Krämer, K. W. and Güdel, H. U.},
+  title  = {Upconversion spectroscopy and properties of NaYF4 doped with Er3+, Tm3+ and/or Yb3+},
+  journal = {J. Lumin.}, year = {2006}, volume = {117}, pages = {1--12},
+  doi    = {10.1016/j.jlumin.2005.03.011}, access = {inaccessible},
+}
+@article{renerolecuna2011,
+  author = {Renero-Lecuna, C. and others},
+  title  = {Origin of the High Upconversion Green Luminescence Efficiency in beta-NaYF4:2%Er3+,20%Yb3+},
+  journal = {Chem. Mater.}, year = {2011}, volume = {23}, pages = {3442--3448},
+  doi    = {10.1021/cm2004227}, access = {inaccessible},
+}
+@article{pollnau2000,
+  author = {Pollnau, M. and Gamelin, D. R. and Lüthi, S. R. and Güdel, H. U. and Hehlen, M. P.},
+  title  = {Power dependence of upconversion luminescence in lanthanide and transition-metal-ion systems},
+  journal = {Phys. Rev. B}, year = {2000}, volume = {61}, pages = {3337},
+  doi    = {10.1103/PhysRevB.61.3337}, access = {inaccessible},
+}
