@@ -8,34 +8,14 @@ from jablonski import (
 from jablonski.transitions import (
     Absorption,
     Fluorescence,
-    MassAction,
     InternalConversion,
 )
 from pint import get_application_registry
 
+from .transitions import EnergyTransferUpconversion
 from .utils import h, c
 
 u = get_application_registry()
-
-wl = 9.8e-7 * u.m  # IR Wavelength
-
-photon_energy = h * (c / wl)  # E = h nu
-
-
-class EnergyTransferUpconversion(SpectroscopicSystem):
-    sensitizer_high: SingletState = initial(0.0, default=0)
-    sensitizer_low: SingletState = initial(0.0, default=0)
-
-    activator_high: SingletState = initial(0.0, default=0)
-    activator_low: SingletState = initial(0.0, default=0)
-
-    rate: Parameter = assign(default=0 / u.s)
-
-    upconversion = MassAction(
-        reactants=[sensitizer_high, activator_low],
-        products=[sensitizer_low, activator_high],
-        rate=rate,
-    )
 
 
 class AndersonModel(SpectroscopicSystem):
@@ -91,6 +71,8 @@ class AndersonModel(SpectroscopicSystem):
 
     # Control parameter
     energy_flux: Parameter = assign(default=0 * u.W / u.cm**2)
+    excitation_wavelength: Parameter = assign(default=980 * u.nm)
+    photon_energy = h * c / excitation_wavelength  # E = h nu
     photon_flux = energy_flux / photon_energy
 
     Yb1: SingletState = initial(
