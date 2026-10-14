@@ -1,0 +1,17 @@
+series,pulse_energy_density_mJ_cm2,green_red_ratio
+calculated_new_model,2.883,16.814
+calculated_new_model,4.865,10.83
+calculated_new_model,7.387,9.059
+calculated_new_model,10.811,6.148
+calculated_new_model,35.676,1.995
+calculated_new_model,76.577,1.466
+calculated_new_model,113.694,1.262
+calculated_new_model,166.126,1.12
+experimental,2.342,17.181
+experimental,5.045,12.132
+experimental,7.387,10.015
+experimental,10.811,7.41
+experimental,35.676,2.239
+experimental,76.577,1.466
+experimental,113.694,1.262
+experimental,166.126,1.099
