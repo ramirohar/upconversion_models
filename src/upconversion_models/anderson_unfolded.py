@@ -1,41 +1,30 @@
 from jablonski import (
+    Parameter,
     SingletState,
     SpectroscopicSystem,
-    Parameter,
-    initial,
     assign,
+    initial,
 )
 from jablonski.transitions import (
     Absorption,
     Fluorescence,
-    MassAction,
     InternalConversion,
+    MassAction,
 )
 from pint import get_application_registry
 
-from .utils import h, c
+from upconversion_models.transitions import (
+    EnergyTransferUpconversion,
+    PhononAssistedEnergyTransfer,
+    TemperatureDependentInternalConversionRef,
+    TemperatureDependentInternalExcitation,
+    TemperatureDependentInternalRelaxation,
+)
+
+
+from .utils import c, h, k, hc
 
 u = get_application_registry()
-
-wl = 9.8e-7 * u.m  # IR Wavelength
-
-photon_energy = h * (c / wl)  # E = h nu
-
-
-class EnergyTransferUpconversion(SpectroscopicSystem):
-    sensitizer_high: SingletState = initial(0.0, default=0)
-    sensitizer_low: SingletState = initial(0.0, default=0)
-
-    activator_high: SingletState = initial(0.0, default=0)
-    activator_low: SingletState = initial(0.0, default=0)
-
-    rate: Parameter = assign(default=0 / u.s)
-
-    upconversion = MassAction(
-        reactants=[sensitizer_high, activator_low],
-        products=[sensitizer_low, activator_high],
-        rate=rate,
-    )
 
 
 class ManifoldThermalization(SpectroscopicSystem):
@@ -52,7 +41,15 @@ class ManifoldThermalization(SpectroscopicSystem):
 class AndersonModelUnfolded(SpectroscopicSystem):
     ## Parameter values taken from 2013-Anderson's model
     ## 6th level unfolded in two
+    ## Energy transfers are temperature independent (plain mass action)
+    T0: Parameter = assign(default=300 * u.K)
+    T: Parameter = assign(default=300 * u.K)
 
+    # Effective phonon energy for multiphonon relaxation
+    # Suyver 2006: dominant Raman mode of β-NaYF4 (298, 370, 418 cm-1; 350 cm-1 from
+    # the thermal shift and broadening of the Yb3+ zero-phonon line). 298 cm-1 gives
+    # the sharper blue and green maxima of Yu 2014, 350 cm-1 slightly better lifetimes
+    phonon_wavenumber: Parameter = assign(default=298 / u.cm)
     yb_cross_section: Parameter = assign(default=1e-20 * u.cm**2)  # no value reported
     yb_rad: Parameter = assign(default=393 / u.s)
     yb_nr: Parameter = assign(default=220 / u.s)
@@ -86,8 +83,10 @@ class AndersonModelUnfolded(SpectroscopicSystem):
     # Radiative rates
     k_r8: Parameter = assign(default=2_330 / u.s)
     k_r6: Parameter = assign(default=1_510 / u.s)
-    k_r6s: Parameter = assign(default=1_510 / u.s)
-    k_r6h: Parameter = assign(default=1_510 / u.s)
+    # Split of Anderson's k_r6 = 1510 at T0: fs(T0)·k_r6s + (1 - fs(T0))·k_r6h = k_r6,
+    # with k_r6h / k_r6s = C = 5.52 / 3 from the LIR fit of Suta 2025 (C·g2/g1 = 5.52)
+    k_r6s: Parameter = assign(default=1_375 / u.s)
+    k_r6h: Parameter = assign(default=2_529 / u.s)
     k_r5: Parameter = assign(default=2_039 / u.s)
     k_r3: Parameter = assign(default=73 / u.s)
     k_r2: Parameter = assign(default=110 / u.s)
@@ -101,14 +100,8 @@ class AndersonModelUnfolded(SpectroscopicSystem):
     # Additional parameters
     k_uc2: Parameter = assign(default=2.31e-17 / u.s * u.cm**3)
 
-    # Level 6 poblation parameters
-    fs: Parameter = assign(default=0.9)  # To be complete
-    fh: Parameter = assign(default=1 - fs)
-
-    # Manifold rates
-    k_therm: Parameter = assign(default=1e13 / u.s)
-    k_manifold_up: Parameter = assign(default=fh * k_therm)
-    k_manifold_down: Parameter = assign(default=fs * k_therm)
+    # Manifold rates: intrinsic 2H11/2 <-> 4S3/2 coupling knr(0) (Suta 2025)
+    k_therm: Parameter = assign(default=2.29e6 / u.s)
 
     # Parameters introduced (not reported in Anderson's)
     site_density: Parameter = assign(default=1.38e22 / u.cm**3)
@@ -117,62 +110,81 @@ class AndersonModelUnfolded(SpectroscopicSystem):
     yb_concetration: Parameter = assign(default=0.18)
     er_concetration: Parameter = assign(default=0.02)
 
-    energy_factor = (h * c).magnitude * u.eV
-
     # Control parameter
     energy_flux: Parameter = assign(default=0 * u.W / u.cm**2)
+    excitation_wavelength: Parameter = assign(default=980 * u.nm)
+    photon_energy = h * c / excitation_wavelength  # E = h nu
     photon_flux = energy_flux / photon_energy
 
     Yb1: SingletState = initial(
-        energy=0 * energy_factor,
+        energy=0 * hc / u.cm,
         spin_multiplicity="singlet",
         default=yb_concetration * (1 - isolated_percentage),  # type: ignore
     )
 
     Yb2: SingletState = initial(
-        energy=10200 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=10200 * hc / u.cm, spin_multiplicity="singlet", default=0
     )
 
     Er1: SingletState = initial(
-        energy=0 * energy_factor,
+        energy=0 * hc / u.cm,
         spin_multiplicity="singlet",
         default=er_concetration * (1 - isolated_percentage),  # type: ignore
     )
 
     Er2: SingletState = initial(
-        energy=6500 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=6500 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er3: SingletState = initial(
-        energy=10200 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=10200 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er4: SingletState = initial(
-        energy=12500 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=12500 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er5: SingletState = initial(
-        energy=15000 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=15000 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er6s: SingletState = initial(
-        energy=18300 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=18300 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
+    # 650 cm-1 above Er6s: high-resolution excitation spectra at 77 K (Suta 2025)
     Er6h: SingletState = initial(
-        energy=19200 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=18950 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er7: SingletState = initial(
-        energy=20500 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=20500 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er8: SingletState = initial(
-        energy=24500 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=24500 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     Er9: SingletState = initial(
-        energy=26100 * energy_factor, spin_multiplicity="singlet", default=0
+        energy=26100 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
     )
 
     abs = Absorption(
@@ -269,20 +281,31 @@ class AndersonModelUnfolded(SpectroscopicSystem):
         rate=k_95 * site_density,
     )
 
-    # Manifold balance
-
-    manifold = ManifoldThermalization(
-        high=Er6h, low=Er6s, rate_up=k_manifold_up, rate_down=k_manifold_down
+    # 6s_6h thermalization, k_therm = knr(0) of Suta 2025 (eq. 6): each rate carries
+    # the degeneracy of its final level, g(4S3/2) = 4 down and g(2H11/2) = 12 up
+    relaxation = TemperatureDependentInternalRelaxation(
+        T=T,
+        source=Er6h,
+        target=Er6s,
+        rate=4 * k_therm,
+        phonon_wavenumber=phonon_wavenumber,
     )
 
-    # Non radiative decays
+    excitation = TemperatureDependentInternalExcitation(
+        T=T,
+        source=Er6s,
+        target=Er6h,
+        rate=12 * k_therm,
+        phonon_wavenumber=phonon_wavenumber,
+    )
+
+    # Non-radiative decays
 
     norad9 = InternalConversion(high=Er9, low=Er8, rate=k_nr9)
     norad8 = InternalConversion(high=Er8, low=Er7, rate=k_nr8)
-    norad7h = InternalConversion(high=Er7, low=Er6h, rate=k_nr7)
-    # norad7s = InternalConversion(high=Er7, low=Er6s, rate=a_nr*k_nr7)
-    norad6h = InternalConversion(high=Er6h, low=Er5, rate=k_nr6s)
-    norad6s = InternalConversion(high=Er6s, low=Er5, rate=k_nr6h)
+    norad7 = InternalConversion(high=Er7, low=Er6s, rate=k_nr7)
+    norad6h = InternalConversion(high=Er6h, low=Er5, rate=k_nr6)
+    norad6s = InternalConversion(high=Er6s, low=Er5, rate=k_nr6)
     norad5 = InternalConversion(high=Er5, low=Er4, rate=k_nr5)
     norad4 = InternalConversion(high=Er4, low=Er3, rate=k_nr4)
     norad3 = InternalConversion(high=Er3, low=Er2, rate=k_nr3)
@@ -313,19 +336,27 @@ class AndersonModelUnfolded(SpectroscopicSystem):
 
     # Er-Er Cross-Relaxation
 
-    cross6h = EnergyTransferUpconversion(
+    # Phonon-assisted: the mismatch (1600 cm-1 from 6s, 2120 cm-1 from 6h) is emitted
+    # as phonons, so the rate scales as (1 + n)^p from Anderson's value at T0
+    cross6h = PhononAssistedEnergyTransfer(
         sensitizer_high=Er6h,
         sensitizer_low=Er3,
         activator_low=Er1,
         activator_high=Er2,
         rate=k_cr6h * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
     )
-    cross6s = EnergyTransferUpconversion(
+    cross6s = PhononAssistedEnergyTransfer(
         sensitizer_high=Er6s,
         sensitizer_low=Er3,
         activator_low=Er1,
         activator_high=Er2,
         rate=k_cr6s * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
     )
     cross4 = EnergyTransferUpconversion(
         sensitizer_high=Er4,
