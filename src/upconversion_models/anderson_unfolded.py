@@ -15,7 +15,6 @@ from pint import get_application_registry
 
 from upconversion_models.transitions import (
     EnergyTransferUpconversion,
-    PhononAssistedEnergyTransfer,
     TemperatureDependentInternalConversionRef,
     TemperatureDependentInternalExcitation,
     TemperatureDependentInternalRelaxation,
@@ -336,27 +335,19 @@ class AndersonModelUnfolded(SpectroscopicSystem):
 
     # Er-Er Cross-Relaxation
 
-    # Phonon-assisted: the mismatch (1600 cm-1 from 6s, 2120 cm-1 from 6h) is emitted
-    # as phonons, so the rate scales as (1 + n)^p from Anderson's value at T0
-    cross6h = PhononAssistedEnergyTransfer(
+    cross6h = EnergyTransferUpconversion(
         sensitizer_high=Er6h,
         sensitizer_low=Er3,
         activator_low=Er1,
         activator_high=Er2,
         rate=k_cr6h * site_density,
-        T=T,
-        T_A=T0,
-        phonon_wavenumber=phonon_wavenumber,
     )
-    cross6s = PhononAssistedEnergyTransfer(
+    cross6s = EnergyTransferUpconversion(
         sensitizer_high=Er6s,
         sensitizer_low=Er3,
         activator_low=Er1,
         activator_high=Er2,
         rate=k_cr6s * site_density,
-        T=T,
-        T_A=T0,
-        phonon_wavenumber=phonon_wavenumber,
     )
     cross4 = EnergyTransferUpconversion(
         sensitizer_high=Er4,
