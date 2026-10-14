@@ -1,0 +1,459 @@
+from jablonski import (
+    Parameter,
+    SingletState,
+    SpectroscopicSystem,
+    assign,
+    initial,
+)
+from jablonski.transitions import (
+    Absorption,
+    Fluorescence,
+    InternalConversion,
+    MassAction,
+)
+from pint import get_application_registry
+
+from upconversion_models.transitions import (
+    EnergyTransferUpconversion,
+    PhononAssistedEnergyTransfer,
+    TemperatureDependentInternalConversionRef,
+    TemperatureDependentInternalExcitation,
+    TemperatureDependentInternalRelaxation,
+)
+
+
+from .utils import c, h, k, hc
+
+u = get_application_registry()
+
+wl = 9.8e-7 * u.m  # IR Wavelength
+
+photon_energy = h * (c / wl)  # E = h nu
+
+
+class ManifoldThermalization(SpectroscopicSystem):
+    low: SingletState = initial(0.0, default=0)
+    high: SingletState = initial(0.0, default=0)
+
+    rate_up: Parameter = assign(default=0 / u.s)
+    rate_down: Parameter = assign(default=0 / u.s)
+
+    thermalization_up = MassAction(reactants=[low], products=[high], rate=rate_up)
+    thermalization_down = MassAction(reactants=[high], products=[low], rate=rate_down)
+
+
+class AndersonModelUnfoldedTwiceETU69(SpectroscopicSystem):
+    ## Parameter values taken from 2013-Anderson's model
+    ## 6th level unfolded in two
+    ## Energy transfers are temperature independent (plain mass action)
+    T0: Parameter = assign(default=300 * u.K)
+    T: Parameter = assign(default=300 * u.K)
+
+    # Effective phonon energy for multiphonon relaxation
+    # Suyver 2006: dominant Raman mode of β-NaYF4 (298, 370, 418 cm-1; 350 cm-1 from
+    # the thermal shift and broadening of the Yb3+ zero-phonon line). 298 cm-1 gives
+    # the sharper blue and green maxima of Yu 2014, 350 cm-1 slightly better lifetimes
+    phonon_wavenumber: Parameter = assign(default=298 / u.cm)
+    yb_cross_section: Parameter = assign(default=1e-20 * u.cm**2)  # no value reported
+    yb_rad: Parameter = assign(default=393 / u.s)
+    yb_nr: Parameter = assign(default=220 / u.s)
+
+    # Yb -> Er etu rates
+    k_13: Parameter = assign(default=5.9 * 2e-16 / u.s * u.cm**3)
+    k_25: Parameter = assign(default=0 / u.s * u.cm**3)
+    k_37: Parameter = assign(default=1.54e-15 / u.s * u.cm**3)
+    k_58: Parameter = assign(default=1.76e-15 / u.s * u.cm**3)
+    k_69: Parameter = assign(default=6.07e-15 / u.s * u.cm**3)
+    k_6s9: Parameter = assign(default=6.07e-15 / u.s * u.cm**3)
+    k_6h9: Parameter = assign(default=6.07e-15 / u.s * u.cm**3)
+
+    # Er -> Yb etu rates
+    k_31: Parameter = assign(default=2e-16 / u.s * u.cm**3)
+    k_52: Parameter = assign(default=0 / u.s * u.cm**3)
+    k_73: Parameter = assign(default=2.04e-16 / u.s * u.cm**3)
+    k_95: Parameter = assign(default=2.84e-16 / u.s * u.cm**3)
+
+    # Non radiative rates
+    k_nr9: Parameter = assign(default=1.76e6 / u.s)
+    k_nr8: Parameter = assign(default=43_450 / u.s)
+    k_nr7: Parameter = assign(default=1e6 / u.s)
+    k_nr6: Parameter = assign(default=26 / u.s)
+    k_nr6s: Parameter = assign(default=26 / u.s)
+    k_nr6h: Parameter = assign(default=26 / u.s)
+    k_nr5: Parameter = assign(default=0 / u.s)
+    k_nr4: Parameter = assign(default=22_120 / u.s)
+    k_nr3: Parameter = assign(default=61 / u.s)
+
+    # Radiative rates
+    k_r8: Parameter = assign(default=2_330 / u.s)
+    k_r6: Parameter = assign(default=1_510 / u.s)
+    # Split of Anderson's k_r6 = 1510 at T0: fs(T0)·k_r6s + (1 - fs(T0))·k_r6h = k_r6,
+    # with k_r6h / k_r6s = C = 5.52 / 3 from the LIR fit of Suta 2025 (C·g2/g1 = 5.52)
+    k_r6s: Parameter = assign(default=1_375 / u.s)
+    k_r6h: Parameter = assign(default=2_529 / u.s)
+    k_r5: Parameter = assign(default=2_039 / u.s)
+    k_r3: Parameter = assign(default=73 / u.s)
+    k_r2: Parameter = assign(default=110 / u.s)
+
+    # Cross relaxation
+    k_cr6: Parameter = assign(default=2.79e-17 / u.s * u.cm**3)
+    k_cr6s: Parameter = assign(default=2.79e-17 / u.s * u.cm**3)
+    k_cr6h: Parameter = assign(default=2.79e-17 / u.s * u.cm**3)
+    k_cr4: Parameter = assign(default=8.04e-19 / u.s * u.cm**3)
+
+    # Additional parameters
+    k_uc2: Parameter = assign(default=2.31e-17 / u.s * u.cm**3)
+
+    # Manifold rates: intrinsic 2H11/2 <-> 4S3/2 coupling knr(0) (Suta 2025)
+    k_therm: Parameter = assign(default=2.29e6 / u.s)
+
+    # Parameters introduced (not reported in Anderson's)
+    site_density: Parameter = assign(default=1.38e22 / u.cm**3)
+
+    isolated_percentage: Parameter = assign(default=0.05)
+    yb_concetration: Parameter = assign(default=0.18)
+    er_concetration: Parameter = assign(default=0.02)
+
+    # Control parameter
+    photon_flux: Parameter = assign(default= 0 / u.s/u.cm**2)
+
+    Yb1: SingletState = initial(
+        energy=0 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=yb_concetration * (1 - isolated_percentage),  # type: ignore
+    )
+
+    Yb2: SingletState = initial(
+        energy=10200 * hc / u.cm, spin_multiplicity="singlet", default=0
+    )
+
+    Er1: SingletState = initial(
+        energy=0 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=er_concetration * (1 - isolated_percentage),  # type: ignore
+    )
+
+    Er2: SingletState = initial(
+        energy=6500 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
+    )
+
+    Er3: SingletState = initial(
+        energy=10200 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
+    )
+
+    Er4: SingletState = initial(
+        energy=12500 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
+    )
+
+    Er5: SingletState = initial(
+        energy=15000 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
+    )
+
+    Er6s: SingletState = initial(
+        energy=18300 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
+    )
+
+    # 650 cm-1 above Er6s: high-resolution excitation spectra at 77 K (Suta 2025)
+    Er6h: SingletState = initial(
+        energy=18950 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
+    )
+
+    Er7: SingletState = initial(
+        energy=20500 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
+    )
+
+    Er8: SingletState = initial(
+        energy=24500 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
+    )
+
+    Er9: SingletState = initial(
+        energy=26100 * hc / u.cm,
+        spin_multiplicity="singlet",
+        default=0,
+    )
+
+    abs = Absorption(
+        ground=Yb1,
+        excited=Yb2,
+        rate=yb_cross_section,
+        pump=photon_flux,
+    )
+
+    rad = Fluorescence(ground=Yb1, excited=Yb2, rate=yb_rad)
+    norad = InternalConversion(low=Yb1, high=Yb2, rate=yb_nr)
+
+    # Yb -> Er transitions
+
+    etu13 = EnergyTransferUpconversion(
+        sensitizer_high=Yb2,
+        sensitizer_low=Yb1,
+        activator_low=Er1,
+        activator_high=Er3,
+        rate=k_13 * site_density,
+    )
+
+    etu25 = EnergyTransferUpconversion(
+        sensitizer_high=Yb2,
+        sensitizer_low=Yb1,
+        activator_low=Er2,
+        activator_high=Er5,
+        rate=k_25 * site_density,
+    )
+
+    etu37 = EnergyTransferUpconversion(
+        sensitizer_high=Yb2,
+        sensitizer_low=Yb1,
+        activator_low=Er3,
+        activator_high=Er7,
+        rate=k_37 * site_density,
+    )
+
+    etu58 = EnergyTransferUpconversion(
+        sensitizer_high=Yb2,
+        sensitizer_low=Yb1,
+        activator_low=Er5,
+        activator_high=Er8,
+        rate=k_58 * site_density,
+    )
+
+    # Phonon-assisted 6 -> 9 ETU: the mismatch (from the state energies, or overridden
+    # through _mismatch_wavenumber) is emitted as phonons, scaled from Anderson's rate at T0
+    etu6s9 = PhononAssistedEnergyTransfer(
+        sensitizer_high=Yb2,
+        sensitizer_low=Yb1,
+        activator_low=Er6s,
+        activator_high=Er9,
+        rate=k_6s9 * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+    )
+
+    etu6h9 = PhononAssistedEnergyTransfer(
+        sensitizer_high=Yb2,
+        sensitizer_low=Yb1,
+        activator_low=Er6h,
+        activator_high=Er9,
+        rate=k_6h9 * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+    )
+
+    # Er -> Yb transitions
+
+    etu31 = EnergyTransferUpconversion(
+        sensitizer_high=Er3,
+        sensitizer_low=Er1,
+        activator_low=Yb1,
+        activator_high=Yb2,
+        rate=k_31 * site_density,
+    )
+
+    etu52 = EnergyTransferUpconversion(
+        sensitizer_high=Er5,
+        sensitizer_low=Er2,
+        activator_low=Yb1,
+        activator_high=Yb2,
+        rate=k_52 * site_density,
+    )
+
+    etu73 = EnergyTransferUpconversion(
+        sensitizer_high=Er7,
+        sensitizer_low=Er3,
+        activator_low=Yb1,
+        activator_high=Yb2,
+        rate=k_73 * site_density,
+    )
+
+    etu95 = EnergyTransferUpconversion(
+        sensitizer_high=Er9,
+        sensitizer_low=Er5,
+        activator_low=Yb1,
+        activator_high=Yb2,
+        rate=k_95 * site_density,
+    )
+
+    # 6s_6h thermalization, k_therm = knr(0) of Suta 2025 (eq. 6): each rate carries
+    # the degeneracy of its final level, g(4S3/2) = 4 down and g(2H11/2) = 12 up
+    relaxation = TemperatureDependentInternalRelaxation(
+        T=T,
+        source=Er6h,
+        target=Er6s,
+        rate=4 * k_therm,
+        phonon_wavenumber=phonon_wavenumber,
+    )
+
+    excitation = TemperatureDependentInternalExcitation(
+        T=T,
+        source=Er6s,
+        target=Er6h,
+        rate=12 * k_therm,
+        phonon_wavenumber=phonon_wavenumber,
+    )
+
+    # Non radiative decays, with their upward partners by detailed balance
+    # g = 2J+1: Er2 4I13/2=14, Er3 4I11/2=12, Er4 4I9/2=10, Er5 4F9/2=10, Er6s 4S3/2=4,
+    # Er6h 2H11/2=12, Er7 4F7/2=8, Er8 2H9/2=10, Er9 4G11/2=12
+    # k_nr5 = 0 (Anderson), so the 4 -> 5 thermal excitation is also zero
+    norad9 = TemperatureDependentInternalConversionRef(
+        source=Er9,
+        target=Er8,
+        T_A=T0,
+        reference_rate=k_nr9,
+        phonon_wavenumber=phonon_wavenumber,
+        T=T,
+        g_source=12,
+        g_target=10,
+    )
+    norad8 = TemperatureDependentInternalConversionRef(
+        source=Er8,
+        target=Er7,
+        T_A=T0,
+        reference_rate=k_nr8,
+        phonon_wavenumber=phonon_wavenumber,
+        T=T,
+        g_source=10,
+        g_target=8,
+    )
+    norad7 = TemperatureDependentInternalConversionRef(
+        source=Er7,
+        target=Er6h,
+        T_A=T0,
+        reference_rate=k_nr7,
+        phonon_wavenumber=phonon_wavenumber,
+        T=T,
+        g_source=8,
+        g_target=12,
+    )
+    norad6h = TemperatureDependentInternalConversionRef(
+        source=Er6h,
+        target=Er5,
+        T_A=T0,
+        reference_rate=k_nr6h,
+        phonon_wavenumber=phonon_wavenumber,
+        T=T,
+        g_source=12,
+        g_target=10,
+    )
+    norad6s = TemperatureDependentInternalConversionRef(
+        source=Er6s,
+        target=Er5,
+        T_A=T0,
+        reference_rate=k_nr6s,
+        phonon_wavenumber=phonon_wavenumber,
+        T=T,
+        g_source=4,
+        g_target=10,
+    )
+    norad5 = TemperatureDependentInternalConversionRef(
+        source=Er5,
+        target=Er4,
+        T_A=T0,
+        reference_rate=k_nr5,
+        phonon_wavenumber=phonon_wavenumber,
+        T=T,
+        g_source=10,
+        g_target=10,
+    )
+    norad4 = TemperatureDependentInternalConversionRef(
+        source=Er4,
+        target=Er3,
+        T_A=T0,
+        reference_rate=k_nr4,
+        phonon_wavenumber=phonon_wavenumber,
+        T=T,
+        g_source=10,
+        g_target=12,
+    )
+    norad3 = TemperatureDependentInternalConversionRef(
+        source=Er3,
+        target=Er2,
+        T_A=T0,
+        reference_rate=k_nr3,
+        phonon_wavenumber=phonon_wavenumber,
+        T=T,
+        g_source=12,
+        g_target=14,
+    )
+
+    # Radiative decays
+
+    rad81 = Fluorescence(excited=Er8, ground=Er1, rate=0.40 * k_r8)  # Blue
+    rad82 = Fluorescence(excited=Er8, ground=Er2, rate=0.42 * k_r8)  # Blue
+    rad83 = Fluorescence(excited=Er8, ground=Er3, rate=0.14 * k_r8)  # Blue
+    rad85 = Fluorescence(excited=Er8, ground=Er5, rate=0.04 * k_r8)  # Blue
+
+    rad6h1 = Fluorescence(excited=Er6h, ground=Er1, rate=0.70 * k_r6h)  # Green
+    rad6h2 = Fluorescence(excited=Er6h, ground=Er2, rate=0.25 * k_r6h)  # Green
+    rad6h3 = Fluorescence(excited=Er6h, ground=Er3, rate=0.05 * k_r6h)  # Green
+
+    rad6s1 = Fluorescence(excited=Er6s, ground=Er1, rate=0.70 * k_r6s)  # Yellow-Green
+    rad6s2 = Fluorescence(excited=Er6s, ground=Er2, rate=0.25 * k_r6s)  # Yellow-Green
+    rad6s3 = Fluorescence(excited=Er6s, ground=Er3, rate=0.05 * k_r6s)  # Yellow-Green
+
+    rad51 = Fluorescence(excited=Er5, ground=Er1, rate=0.90 * k_r5)  # Red
+    rad52 = Fluorescence(excited=Er5, ground=Er2, rate=0.05 * k_r5)  # Red
+    rad53 = Fluorescence(excited=Er5, ground=Er3, rate=0.05 * k_r5)  # Red
+
+    rad31 = Fluorescence(excited=Er3, ground=Er1, rate=0.81 * k_r3)  # 1um
+    rad32 = Fluorescence(excited=Er3, ground=Er2, rate=0.19 * k_r3)  # 1um
+
+    rad2 = Fluorescence(excited=Er2, ground=Er1, rate=k_r2)  # 1.5um
+
+    # Er-Er Cross-Relaxation
+
+    # Phonon-assisted: the mismatch (1600 cm-1 from 6s, 2120 cm-1 from 6h) is emitted
+    # as phonons, so the rate scales as (1 + n)^p from Anderson's value at T0
+    cross6h = PhononAssistedEnergyTransfer(
+        sensitizer_high=Er6h,
+        sensitizer_low=Er3,
+        activator_low=Er1,
+        activator_high=Er2,
+        rate=k_cr6h * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+    )
+    cross6s = PhononAssistedEnergyTransfer(
+        sensitizer_high=Er6s,
+        sensitizer_low=Er3,
+        activator_low=Er1,
+        activator_high=Er2,
+        rate=k_cr6s * site_density,
+        T=T,
+        T_A=T0,
+        phonon_wavenumber=phonon_wavenumber,
+    )
+    cross4 = EnergyTransferUpconversion(
+        sensitizer_high=Er4,
+        sensitizer_low=Er2,
+        activator_low=Er1,
+        activator_high=Er2,
+        rate=k_cr4 * site_density,
+    )
+
+    # Er -> Er ETU
+    uc2 = EnergyTransferUpconversion(
+        sensitizer_high=Er2,
+        sensitizer_low=Er1,
+        activator_low=Er2,
+        activator_high=Er4,
+        rate=k_uc2 * site_density,
+    )

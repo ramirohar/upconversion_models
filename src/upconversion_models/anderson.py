@@ -17,10 +17,6 @@ from .utils import h, c
 
 u = get_application_registry()
 
-wl = 9.8e-7 * u.m  # IR Wavelength
-
-photon_energy = h * (c / wl)  # E = h nu
-
 
 class EnergyTransferUpconversion(SpectroscopicSystem):
     sensitizer_high: SingletState = initial(0.0, default=0)
@@ -41,7 +37,8 @@ class EnergyTransferUpconversion(SpectroscopicSystem):
 class AndersonModel(SpectroscopicSystem):
     ## Parameter values taken from 2003-Anderson's model
 
-    yb_cross_section: Parameter = assign(default=1e-20 * u.cm**2)  # no value reported
+    # no value reported; 1e-20 at 980 nm matches Fig. 4 (943 nm, Figs. 2-3: ~2.3e-21)
+    yb_cross_section: Parameter = assign(default=1e-20 * u.cm**2)
     yb_rad: Parameter = assign(default=393 / u.s)
     yb_nr: Parameter = assign(default=220 / u.s)
     # Yb -> Er etu rates
@@ -90,8 +87,10 @@ class AndersonModel(SpectroscopicSystem):
     energy_factor = (h * c).magnitude * u.eV
 
     # Control parameter
-    energy_flux: Parameter = assign(default=0 * u.W / u.cm**2)
-    photon_flux = energy_flux / photon_energy
+    photon_flux: Parameter = assign(default=0 / u.s / u.cm**2)
+    # excitation_wavelength: Parameter = assign(default=980 * u.nm)
+    # photon_energy: Parameter = assign(default=h * c / excitation_wavelength)  # E = h nu
+    # photon_flux = energy_flux / photon_energy
 
     Yb1: SingletState = initial(
         energy=0 * energy_factor,

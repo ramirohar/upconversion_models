@@ -249,7 +249,7 @@ class SteadyState(poincare.SteadyState):
                 str(var): xr.DataArray(
                     np.array(
                         [
-                            results[v][var].item().magnitude
+                            results[v][var].item().to_base_units().magnitude
                             if isinstance(results[v][var].item(), pint.Quantity)
                             else results[v][var].item()
                             for v in values
