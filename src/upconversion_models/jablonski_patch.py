@@ -249,7 +249,9 @@ class SteadyState(poincare.SteadyState):
                 str(var): xr.DataArray(
                     np.array(
                         [
-                            results[v][var].item().magnitude
+                            # base units, so magnitudes are comparable across outputs
+                            # (e.g. h*c/λ with λ in nm leaves an uncancelled nm/m)
+                            results[v][var].item().to_base_units().magnitude
                             if isinstance(results[v][var].item(), pint.Quantity)
                             else results[v][var].item()
                             for v in values
